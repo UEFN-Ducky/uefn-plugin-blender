@@ -1,0 +1,90 @@
+{
+  "id": "blender",
+  "kind": "plugin",
+  "version": "1.0.17",
+  "label": "Blender",
+  "description": "Control Blender for 3D modeling and export to UEFN. Installs the Blender addon automatically — open Blender after enabling.",
+  "min_app_version": "1.0.0",
+  "default_enabled": false,
+  "secret_keys": [],
+  "contributes": {
+    "settings.tabs": [
+      {
+        "id": "Blender",
+        "label": "Blender",
+        "icon": "assets/icon.png",
+        "ui": "sections"
+      }
+    ],
+    "settings.sections": [
+      {
+        "tab": "Blender",
+        "id": "connection",
+        "title": "Connection",
+        "description": "On enable, this plugin copies the Blender MCP addon into your Blender user folders. Open (or restart) Blender — the server auto-starts on the port below. Use blender_status / blender_redeploy_addon tools if needed.",
+        "order": 10,
+        "properties": [
+          {
+            "id": "host",
+            "type": "string",
+            "default": "localhost",
+            "label": "Host",
+            "description": "Blender addon socket host (default localhost)."
+          },
+          {
+            "id": "port",
+            "type": "string",
+            "default": "9876",
+            "label": "Port",
+            "description": "Blender addon socket port (default 9876)."
+          }
+        ]
+      }
+    ],
+    "walkthrough": {
+      "id": "blender",
+      "title": "Blender setup",
+      "auto_start": "first_enable",
+      "settings_tab": "Blender",
+      "steps": [
+        {
+          "target": "settings.tab.blender",
+          "title": "Blender plugin enabled",
+          "body": "Addon files were copied into Blender. If Preferences → Add-ons still shows Blender MCP unchecked, tick it once (or restart Blender so the startup enabler flips it). Then N → BlenderMCP → Connect if needed. No uv / GitHub install.",
+          "advance": "next",
+          "mode": "rect"
+        },
+        {
+          "target": "settings.tab.blender",
+          "title": "Talk to Blender",
+          "body": "With Blender open, ask the agent to inspect the scene or model. Tools appear under blender_*. For text/image-to-3D SaaS generation, install the separate 3D AI Studio Store plugin.",
+          "advance": "next"
+        }
+      ]
+    },
+    "agent.tools": {
+      "category": "blender",
+      "intent_pattern": "\\b(blender|mesh|fbx|glb|gltf|polyhaven|sketchfab|hyper3d|hunyuan|3d\\s*model)\\b",
+      "plan_tools": [
+        "blender_status",
+        "blender_get_scene_info",
+        "blender_get_object_info",
+        "blender_get_viewport_screenshot",
+        "blender_get_polyhaven_status",
+        "blender_get_polyhaven_categories",
+        "blender_search_polyhaven_assets",
+        "blender_get_sketchfab_status",
+        "blender_search_sketchfab_models",
+        "blender_get_sketchfab_model_preview",
+        "blender_get_hyper3d_status",
+        "blender_poll_rodin_job_status",
+        "blender_get_hunyuan3d_status",
+        "blender_poll_hunyuan_job_status"
+      ]
+    }
+  },
+  "backend": {
+    "entry": "backend",
+    "register": "register"
+  }
+}
