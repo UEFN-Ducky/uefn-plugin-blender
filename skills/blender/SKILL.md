@@ -1,13 +1,13 @@
 ---
 name: blender
 description: "Control Blender via UEFN-Ducky — model anything with bpy (hard surface, faces, characters, organic, props, env), rig/skin/animate, cloth & hair, UVs/materials/baking, Poly Haven / Sketchfab / Hyper3D, screenshot verify loops, import/export to UEFN"
-license: All Rights Reserved
+license: MIT
 metadata:
   label: Blender
   version: 6
-  author: Iliya Kovachki
-  copyright: Copyright 2026 Iliya Kovachki
-  allow_redistribute: false
+  author: UEFN-Ducky
+  copyright: Copyright 2026 Mindful Path Company, LLC
+  allow_redistribute: true
   managed_by: uefn-ducky
   source_plugin_id: blender
 ---
