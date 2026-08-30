@@ -1,7 +1,7 @@
 {
   "id": "blender",
   "kind": "plugin",
-  "version": "1.0.17",
+  "version": "1.0.19",
   "label": "Blender",
   "description": "Control Blender for 3D modeling and export to UEFN. Installs the Blender addon automatically — open Blender after enabling.",
   "min_app_version": "1.0.0",
