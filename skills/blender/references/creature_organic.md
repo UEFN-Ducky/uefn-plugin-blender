@@ -11,7 +11,7 @@ Spend polygons where the silhouette changes — head, horns, wing fingers, tail 
 | Hero boss / mount (fills screen) | raid boss, rideable dragon | 40–60k | nothing visible; instance repeats (scales, teeth) |
 | Standard enemy | wolf, zombie hound | 10–20k | mouth bag optional, mitten toes |
 | Swarm / ambient | rats, birds, fish | 1–4k | fused limbs, no eye loops, painted detail |
-| Static creature prop (corpse, statue) | — | UEFN prop caps apply: complex large ≤ 9k polys, ≤ 5k verts | export as `SM_`, not `SK_` |
+| Static creature prop (corpse, statue) | — | use the static-prop budget guide in `lod_collision` (hero prop 2,500–9,000 tris) — a guide, not an Epic-enforced cap | export as `SM_`, not `SK_` |
 
 Teeth, spines, suckers, scales: instance them (`geometry_nodes`) or bake them (`texture_bake`) — never hand-model hundreds of copies into the skin mesh.
 

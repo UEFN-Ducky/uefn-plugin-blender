@@ -32,13 +32,17 @@ bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 print(ob.name, [round(d, 3) for d in ob.dimensions])  # compare to the table
 ```
 
-## 2. UEFN budgets (LOD0, Epic best-practices)
+## 2. Prop budget guide (LOD0)
 
 | Prop size | Simple | Medium detail | Complex | Vert cap |
 |---|---|---|---|---|
 | Small (≤ ½ character) | 400 | 700 | 1,200 | 1,000 |
 | Medium (≈ character) | 900 | 2,000 | 4,000 | 3,000 |
 | Large | 2,500 | 6,000 | 9,000 | 5,000 |
+
+These are this pack's authoring targets, not limits the editor enforces — UEFN
+will import a heavier mesh, it just costs you performance budget. Treat a row as
+"over budget, needs LODs or a cut", not "rejected".
 
 Ship **3 LODs minimum** (typical prop chain: 900–3,200 verts → 60–250 at LOD3). Textures ≤ 2K power-of-two. **One material section per mesh** preferred, ≤ 10 UCX collision primitives — see `lod_collision`.
 
@@ -214,6 +218,6 @@ Emissive glass as a second material slot is the one accepted exception to one-ma
 - Don't touch `mesh.use_auto_smooth` / `auto_smooth_angle` — removed in 4.1; use `shade_smooth_by_angle`.
 - Don't stack 3+ materials on one prop, and don't ship a unique 2K texture on background clutter.
 - Don't leave the origin at the world/volume center or forget `transform_apply` before export.
-- Don't exceed the vert caps without LODs — anything over budget with no LOD chain gets flagged.
+- Don't exceed the §2 vert targets without LODs — over budget with no LOD chain is a perf problem you own, even though the import succeeds.
 
 See also: `blockout`, `hard_surface`, `uv_workflow`, `materials_shading`, `texture_bake`, `lod_collision`, `asset_qa`, `uefn_export`.

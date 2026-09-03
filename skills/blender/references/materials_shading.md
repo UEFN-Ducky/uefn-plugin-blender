@@ -81,12 +81,17 @@ Use Material Preview for albedo/rough read; Solid + Flat for silhouette (`verify
 ## Smooth shading + attribute
 
 ```python
+import bpy
 ob = bpy.data.objects["SM_Prop"]
+bpy.context.view_layer.objects.active = ob
+ob.select_set(True)
 for poly in ob.data.polygons:
     poly.use_smooth = True
-# Auto Smooth removed as mesh flag in 4.1+ — use Smooth by Angle modifier
-mod = ob.modifiers.get("SmoothByAngle") or ob.modifiers.new("SmoothByAngle", 'NODES')
-# Prefer: bpy.ops.object.shade_smooth_by_angle() with override, or Weighted Normal — see hard_surface
+# `use_auto_smooth` was removed as a mesh flag in 4.1. Two replacements:
+#   shade_smooth_by_angle -> bakes smooth + the `sharp_edge` attribute, no modifier
+#   shade_auto_smooth     -> adds the live "Smooth by Angle" node-group modifier
+# Do NOT hand-make a bare 'NODES' modifier: with no node group it does nothing.
+bpy.ops.object.shade_smooth_by_angle(angle=0.523599)   # 30 degrees, in radians
 ```
 
 Practical path for mid-poly: `hard_surface` (Smooth by Angle + Weighted Normal). Don't fight with old `use_auto_smooth`.

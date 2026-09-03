@@ -39,7 +39,7 @@ for ei in (4, 5, 6, 7):                   # edge indices to hold
     ce.data[ei].value = 0.8               # 0..1; 1.0 = razor sharp under Subsurf
 ```
 
-Rule: if the silhouette needs a new lobe, add cage geometry (`bpy.ops.mesh.loop_cut_slide` is interactive-ish; prefer `bpy.ops.mesh.subdivide` on a selection, or extrude region) — don't crank `levels` past 3.
+Rule: if the silhouette needs a new lobe, add cage geometry (`bpy.ops.mesh.loopcut_slide` needs an interactive VIEW_3D region — prefer `bpy.ops.mesh.subdivide` on a selection, or extrude region) — don't crank `levels` past 3.
 
 ## Proportional editing — the scriptable grab brush
 
@@ -176,7 +176,7 @@ bpy.ops.object.shade_auto_smooth(angle=1.047)   # 60°; adds "Smooth by Angle" m
 
 ## Silhouette checks
 
-Organic forms live or die by silhouette. After every major pass: `blender_get_viewport_screenshot` from front, side, and 3/4 — the mass should read at thumbnail size; lumps that vanish in silhouette are wasted verts. Compare against reference per `reference_match`; full loop discipline in `verify_loop`. Use `blender_get_object_info` to watch vert counts — a soft prop should stay inside UEFN budgets (medium prop ≈ 3,000 verts; see `asset_qa`).
+Organic forms live or die by silhouette. After every major pass: `blender_get_viewport_screenshot` from front, side, and 3/4 — the mass should read at thumbnail size; lumps that vanish in silhouette are wasted verts. Compare against reference per `reference_match`; full loop discipline in `verify_loop`. Use `blender_get_object_info` to watch vert counts against the static-prop budget guide in `lod_collision` (a guide, not an Epic-enforced cap); pre-export checklist in `asset_qa`.
 
 ## Escalation
 

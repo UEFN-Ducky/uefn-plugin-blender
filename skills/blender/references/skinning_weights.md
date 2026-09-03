@@ -51,9 +51,12 @@ bpy.ops.object.mode_set(mode='OBJECT')
 import bpy
 src = bpy.data.objects["SK_Body"]      # good weights
 dst = bpy.data.objects["SK_Shirt"]     # garment
-for o in (src, dst):
-    o.select_set(True)
-bpy.context.view_layer.objects.active = dst
+for o in bpy.context.selected_objects:
+    o.select_set(False)
+dst.select_set(True)
+src.select_set(True)
+# data_transfer goes ACTIVE -> SELECTED, so the SOURCE must be active
+bpy.context.view_layer.objects.active = src
 bpy.ops.object.data_transfer(
     data_type='VGROUP_WEIGHTS',
     use_auto_transform=False,
@@ -64,7 +67,9 @@ bpy.ops.object.data_transfer(
 )
 ```
 
-Then limit/normalize on the destination.
+Then limit/normalize on the destination. Direction matters: the **active**
+object is the source. To keep the destination active instead, pass
+`use_reverse_transfer=True`.
 
 ## Quick weight audit
 

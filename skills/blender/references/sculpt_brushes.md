@@ -21,7 +21,7 @@ Load after `sculpting` (remesh/multires prep). Brushes need vertex density — a
 | Pull a horn/tentacle out | **Snake Hook** | Skin modifier spine (`organic_forms`) |
 | Polish hard-surface facets | **Scrape/Fill** | — |
 
-Rule stays ponytail: if the fallback column does the job, use it — strokes are for when you need real brush falloff/buildup character.
+Rule of thumb: if the fallback column does the job, use it — strokes are for when you need real brush falloff/buildup character.
 
 ## Setup — sculpt mode + viewport helpers
 

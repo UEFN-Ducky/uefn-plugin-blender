@@ -133,9 +133,10 @@ UEFN specifics: skinned meshes get **no Nanite benefit**, so real LODs and lean 
 
 ```python
 import bpy, bmesh
-arm = bpy.data.objects["RIG_Body"]
+arm = bpy.data.objects["RIG_Character"]
 ob  = bpy.data.objects["SK_Body"]
-for bone, axis in (("shin.L", (0, 0, 1)), ("forearm.L", (1, 0, 0))):  # normal = limb direction
+# UE-friendly bone names (see `rigging_armatures`) — not Blender's .L/.R suffixes
+for bone, axis in (("shin_l", (0, 0, 1)), ("forearm_l", (1, 0, 0))):  # normal = limb direction
     co_world = arm.matrix_world @ arm.data.bones[bone].head_local     # bone head = joint pivot
     co_local = ob.matrix_world.inverted() @ co_world
     bm = bmesh.new(); bm.from_mesh(ob.data)

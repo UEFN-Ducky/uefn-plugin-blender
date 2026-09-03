@@ -10,7 +10,7 @@ Sci-fi hulls, weapons, armor, industrial props, mech parts — anything with mac
 | Smooth curved shells (sleek helmet, car body) | Sub-D high poly → low poly + bake | Only path that holds continuous curvature; see `texture_bake` |
 | Micro detail (grip knurling, tiny vents) | Trim sheet / normal map only | Never model what a texel can carry; see `materials_shading` |
 
-Mid-poly means: chamfer every visible edge with a real 1-segment bevel, bend vertex normals toward the big flat faces (weighted normals) so the shading transition lives entirely on the bevel, skip support loops. It is the dominant game workflow — cheaper than sub-D, bake-optional, and UEFN's budgets (simple prop LOD0 400–2,500 tris, complex up to 9,000 by size class) fit it well. See `lod_collision` for the full budget table.
+Mid-poly means: chamfer every visible edge with a real 1-segment bevel, bend vertex normals toward the big flat faces (weighted normals) so the shading transition lives entirely on the bevel, skip support loops. It is the dominant game workflow — cheaper than sub-D, bake-optional, and it fits the static-prop budget guide in `lod_collision` (simple prop LOD0 400–2,500 tris, hero prop 2,500–9,000). Those are authoring guides, not Epic-enforced caps.
 
 ## Boolean + bevel workflow
 
@@ -218,7 +218,7 @@ Reserve Subdivision Surface for continuously curved shells that will be baked do
 
 - `blender_get_viewport_screenshot` from 3/4-front, side, and rear: silhouette reads at gameplay distance; flat panels show no gradient blotches; bevel highlights are a consistent width.
 - After each boolean apply: screenshot the cut region — no pinching, no missing faces, cutters no longer visible.
-- Budget check: `me = ob.data; me.calc_loop_triangles(); print(len(me.loop_triangles))` against the UEFN caps in `lod_collision`; `blender_get_object_info` to confirm scale is 1.0.
+- Budget check: `me = ob.data; print(sum(len(p.vertices) - 2 for p in me.polygons))` (version-proof tri count) against the budget guide in `lod_collision`; `blender_get_object_info` to confirm scale is 1.0.
 - Stack check: WeightedNormal is the last modifier; `print(me.attributes.get("sharp_edge"))` is not None after the shading pass.
 
 ## Don'ts

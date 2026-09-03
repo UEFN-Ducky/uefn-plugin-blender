@@ -63,9 +63,13 @@ Normals / vertex colors / UVs (if any) after topology locks:
 import bpy
 low = bpy.data.objects["SM_Low"]
 high = bpy.data.objects["SM_High"]
-for o in (high, low):
-    o.select_set(True)
-bpy.context.view_layer.objects.active = low
+for o in bpy.context.selected_objects:
+    o.select_set(False)
+low.select_set(True)
+high.select_set(True)
+# ACTIVE is the SOURCE, selected are the destinations (or pass
+# use_reverse_transfer=True to keep the destination active)
+bpy.context.view_layer.objects.active = high
 bpy.ops.object.data_transfer(
     data_type='CUSTOM_NORMAL',
     use_auto_transform=False,

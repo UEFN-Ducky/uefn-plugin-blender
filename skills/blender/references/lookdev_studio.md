@@ -69,7 +69,13 @@ def view3d():
 sh = view3d().shading
 sh.type = 'SOLID'
 sh.light = 'STUDIO'          # or MATCAP for pure form
-sh.studio_light = 'basic_1.exr'
+# Studio-light identifiers are filenames and vary by build — assigning an
+# unknown one raises. List them first:
+#   [s.name for s in bpy.context.preferences.studio_lights]
+try:
+    sh.studio_light = 'basic_1.exr'
+except TypeError:
+    pass
 sh.use_scene_lights = True   # see LGT_Studio_* in Material/Rendered
 sh.use_scene_world = False
 ```

@@ -8,7 +8,7 @@ Organic massing and high-frequency detail before retopo. Sculpt is **not** the e
 - High-frequency detail to bake (`texture_bake`)
 - Not for mid-poly hard surface (use `hard_surface` bevels instead)
 
-## Dynotopo vs Multires
+## Dyntopo vs Multires
 
 | Mode | Use |
 |---|---|

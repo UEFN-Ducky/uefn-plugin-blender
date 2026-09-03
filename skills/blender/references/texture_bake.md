@@ -11,7 +11,11 @@ High→low maps for game meshes. Requires clean UVs on the **low** (`uv_workflow
 | Diffuse / Base Color | When high has color | Optional |
 | Roughness / ID | Material masks | Optional |
 
-UEFN: OpenGL-style normals; if green channel looks inverted in-engine, flip Y in the Normal Map node or re-bake with correct space.
+Normal-map convention: Blender bakes **OpenGL** style (+Y / green up); Unreal —
+and therefore UEFN — expects **DirectX** style (green down). Flip the green
+channel on the exported map (or invert Y in the Normal Map node before baking).
+Sanity check in-engine: lit recesses should read as recesses, not bumps — if the
+lighting looks inside-out, the green channel is the suspect.
 
 ## Setup
 

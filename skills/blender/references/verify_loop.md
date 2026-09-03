@@ -47,7 +47,14 @@ area, region, space = view3d()
 sh = space.shading
 sh.type = 'SOLID'              # 'WIREFRAME' | 'SOLID' | 'MATERIAL' | 'RENDERED'
 sh.light = 'MATCAP'            # 'STUDIO' | 'MATCAP' | 'FLAT'
-sh.studio_light = 'basic_1.exr'
+# studio_light's valid values DEPEND on sh.light: matcap names under MATCAP,
+# studio names under STUDIO. Cross-assigning raises TypeError, and identifiers
+# vary by build — list them with
+#   [s.name for s in bpy.context.preferences.studio_lights]
+try:
+    sh.studio_light = 'clay_brown.exr'      # a matcap, matching light='MATCAP'
+except TypeError:
+    pass
 sh.color_type = 'SINGLE'       # 'MATERIAL'/'RANDOM' when you need per-object separation
 sh.show_cavity = True
 sh.cavity_type = 'BOTH'        # ridges + valleys pop bevels and pinch errors

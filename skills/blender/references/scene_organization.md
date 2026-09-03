@@ -12,12 +12,17 @@ Load this when starting a new .blend for UEFN work, restructuring a messy scene,
 | Material | `MAT_` (alt `M_`) | `MAT_Crate_Wood` |
 | Collision shells | `UCX_<meshname>_##` (also `UBX_`/`USP_`/`UCP_`, see `lod_collision`) | `UCX_SM_Crate_A_00` |
 | Lights / cameras (never exported) | `LGT_` / `CAM_` | `LGT_Key` |
-| Mirrored bones / vertex groups / shape keys | `.L` / `.R` suffix | `hand.L` |
+| Mirrored bones / vertex groups / shape keys | `_l` / `_r` suffix for UEFN-bound rigs (`.L` / `.R` is Blender's own convention) | `hand_l` |
 
 Rules:
 
 - Object name and mesh datablock name must match — exports and debugging stay sane.
-- `.L` / `.R` go at the *end* of the name. Blender's Symmetrize, X-mirror posing, and weight mirroring key off this suffix (`rigging_armatures`, `skinning_weights` depend on it).
+- The side suffix goes at the *end* of the name. Blender's Symmetrize, X-mirror
+  posing, and weight mirroring recognize `.l/.r`, `_l/_r`, `-l/-r` and ` l/ r` in
+  either case, so UE-friendly `hand_l` works with all of them — prefer it for
+  anything bound for UEFN so the exported skeleton matches Epic naming
+  (`rigging_armatures`, `skinning_weights`). Pick one form and keep it: mixing
+  `hand.L` and `hand_l` in one rig breaks flip/mirror lookups.
 - ASCII, underscores instead of spaces. Keep names short: 4.x truncates ID names at 63 bytes. `# 5.0: limit raised to 255 bytes — still stay short for the 4.2→5.0 window.`
 
 Batch rename pass (run early, before anything references names):

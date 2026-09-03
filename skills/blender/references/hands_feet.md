@@ -113,6 +113,7 @@ def bridge_at(pt, r=0.013):
             mid = (e.verts[0].co + e.verts[1].co) / 2
             if (mid - Vector(pt)).length < r:
                 e.select = True
+    bm.select_flush(True)                       # operators read the flushed selection
     bmesh.update_edit_mesh(palm.data)
     bpy.ops.mesh.bridge_edge_loops()
 

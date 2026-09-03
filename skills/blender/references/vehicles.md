@@ -188,13 +188,15 @@ for name in ("SM_Jeep_Wheel_FL", "SM_Jeep_Wheel_FR", "SM_Jeep_Wheel_RL",
     o.matrix_parent_inverse = body.matrix_world.inverted()
 ```
 
-## Budgets (UEFN vehicle targets, Epic best-practices)
+## Budget guide (vehicle authoring targets)
 
 | Vehicle size | LOD0 verts | LOD3 verts |
 |---|---|---|
 | Small (bike, cart) | 1,200 | 200 |
 | Medium (car, jeep) | 6,000 | 400 |
 | Large (tank, aircraft) | 9,000 | 1,000 |
+
+These are this pack's authoring targets, not editor-enforced limits (see `props` §2).
 
 Ship 3 LODs minimum; kill antennas, mirrors, rails, and bolt detail by LOD1. Textures ≤ 2K power-of-2; aim for one material section per part; ≤ 10 UCX primitives per mesh (`lod_collision`). Spend the budget where the camera lives: 60%+ on the body shell, wheels ~10% each corner at most.
 

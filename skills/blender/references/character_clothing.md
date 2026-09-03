@@ -25,7 +25,7 @@ bpy.context.view_layer.objects.active = body
 
 bpy.ops.object.mode_set(mode='EDIT')
 bpy.ops.mesh.select_all(action='DESELECT')
-body.vertex_groups.active = body.vertex_groups["ShirtRegion"]
+body.vertex_groups.active_index = body.vertex_groups["ShirtRegion"].index
 bpy.ops.object.vertex_group_select()
 before = set(bpy.data.objects)
 bpy.ops.mesh.duplicate()                    # copy the region, keep the body intact
@@ -69,7 +69,7 @@ Cut openings (neck, wrist, waist) by deleting face rings before Solidify — `us
 Collar/cuff: extrude the border loop up and flare it. Scaling uses the selection median, which sits on the loop's center axis, so an XY resize flares it outward:
 
 ```python
-shirt.vertex_groups.active = shirt.vertex_groups["NeckEdge"]
+shirt.vertex_groups.active_index = shirt.vertex_groups["NeckEdge"].index
 bpy.ops.object.mode_set(mode='EDIT')
 bpy.ops.mesh.select_all(action='DESELECT')
 bpy.ops.object.vertex_group_select()
@@ -142,7 +142,7 @@ Any body face fully covered by opaque clothing is wasted verts and a guaranteed 
 bpy.context.view_layer.objects.active = body
 bpy.ops.object.mode_set(mode='EDIT')
 bpy.ops.mesh.select_all(action='DESELECT')
-body.vertex_groups.active = body.vertex_groups["TorsoHidden"]
+body.vertex_groups.active_index = body.vertex_groups["TorsoHidden"].index
 bpy.ops.object.vertex_group_select()
 bpy.ops.mesh.select_less()                 # keep a safety border row
 bpy.ops.mesh.delete(type='FACE')

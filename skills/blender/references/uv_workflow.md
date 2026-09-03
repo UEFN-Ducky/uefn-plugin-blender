@@ -105,7 +105,9 @@ me = ob.data
 me.uv_layers.active = me.uv_layers["UVLightmap"]
 bpy.ops.object.mode_set(mode='EDIT')
 bpy.ops.mesh.select_all(action='SELECT')
-bpy.ops.uv.lightmap_pack(PREF_MARGIN_DIV=64)  # larger divisor = more padding
+# PREF_MARGIN_DIV is a fraction (0.001-1.0), NOT a divisor count — bigger =
+# more padding. Pack quality is PREF_BOX_DIV (int 1-48).
+bpy.ops.uv.lightmap_pack(PREF_BOX_DIV=12, PREF_MARGIN_DIV=0.2)
 bpy.ops.object.mode_set(mode='OBJECT')
 me.uv_layers.active = me.uv_layers["UVMap"]
 ```
