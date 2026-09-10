@@ -28,3 +28,14 @@ def test_removed_object_is_manual() -> None:
     side = _sidecar_for_execute(["Cube", "Lamp"], ["Lamp"])
     assert side is not None
     assert side["revertable"] == "manual"
+
+
+def test_create_that_also_deletes_temps_is_still_auto() -> None:
+    """Chair scripts drop Cube / helpers — Revert must still delete SM_Chair."""
+    side = _sidecar_for_execute(["Camera", "Cube"], ["Camera", "SM_Chair"])
+    assert side is not None
+    assert side["revertable"] == "auto"
+    assert side["slot"] == "blender://object/SM_Chair/exists"
+    code = side["inverse"][0]["params"]["code"]
+    assert "SM_Chair" in code
+    assert "bpy.data.objects.remove" in code

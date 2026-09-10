@@ -94,31 +94,13 @@ def _dumps(obj: Any) -> str:
     return json.dumps(obj, indent=2, default=str)
 
 
-def _object_names_from(info: Any) -> list[str]:
-    if not isinstance(info, dict):
-        return []
-    objs = info.get("objects") or info.get("object_names") or info.get("items") or []
-    names: list[str] = []
-    if isinstance(objs, list):
-        for item in objs:
-            if isinstance(item, str) and item.strip():
-                names.append(item.strip())
-            elif isinstance(item, dict):
-                n = str(item.get("name") or "").strip()
-                if n:
-                    names.append(n)
-    return names
-
-
 def _scene_object_names() -> list[str]:
+    # get_scene_info only returns the first 10 objects — never diff from that.
     try:
-        names = _object_names_from(_cmd("get_scene_info"))
-        if names:
-            return names
-    except Exception:
-        pass
-    try:
-        result = _cmd("execute_code", {"code": "import bpy\nprint('\\n'.join(o.name for o in bpy.data.objects))"})
+        result = _cmd(
+            "execute_code",
+            {"code": "import bpy\nprint('\\n'.join(o.name for o in bpy.data.objects))"},
+        )
         text = str(result.get("result") or "")
         return [ln.strip() for ln in text.splitlines() if ln.strip()]
     except Exception:
@@ -136,18 +118,21 @@ def _delete_objects_code(names: list[str]) -> str:
 
 
 def _sidecar_for_execute(before: list[str], after: list[str]) -> dict[str, Any] | None:
-    added = [n for n in after if n not in before]
-    removed = [n for n in before if n not in after]
+    before_set, after_set = set(before), set(after)
+    added = [n for n in after if n not in before_set]
+    removed = [n for n in before if n not in after_set]
     if not added and not removed:
         return None
-    ident = added[0] if added else (removed[0] if removed else "scene")
-    if added and not removed:
+    # Create (or rename Cube → SM_Chair / join temps) is undoable: delete what appeared.
+    # Only a pure delete has no inverse.
+    if added:
+        ident = added[0]
         return {
             "program": PLUGIN_ID,
             "kind": "object",
             "facet": "exists",
             "slot": f"blender://object/{ident}/exists",
-            "targets": [{"kind": "object", "id": ident, "label": ident, "path": ident}],
+            "targets": [{"kind": "object", "id": n, "label": n, "path": n} for n in added],
             "before": {"names": before},
             "inverse": [{"command": "blender_execute_blender_code", "params": {"code": _delete_objects_code(added)}}],
             "created": [{"kind": "object", "id": n, "label": n, "path": n} for n in added],
@@ -155,6 +140,7 @@ def _sidecar_for_execute(before: list[str], after: list[str]) -> dict[str, Any] 
             "reason": "",
             "summary": f"added {', '.join(added[:4])}" + ("…" if len(added) > 4 else ""),
         }
+    ident = removed[0]
     return {
         "program": PLUGIN_ID,
         "kind": "object",
@@ -309,7 +295,7 @@ def register(api) -> None:
 
     @api.tool(name="blender_execute_blender_code", intent=r"\bblender\b")
     def blender_execute_blender_code(code: str) -> str:
-        """Execute Python code in Blender. Prefer structured tools; break large edits into steps."""
+        """Execute Python code in Blender. One named object per call (primitive, rename, material, or join) — never a whole asset in one script."""
         before = _scene_object_names()
         try:
             result = _cmd("execute_code", {"code": code})

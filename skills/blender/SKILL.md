@@ -4,7 +4,7 @@ description: "Control Blender via UEFN-Ducky — model anything with bpy (hard s
 license: MIT
 metadata:
   label: Blender
-  version: 6
+  version: 7
   author: UEFN-Ducky
   copyright: Copyright 2026 Mindful Path Company, LLC
   allow_redistribute: true
@@ -35,7 +35,7 @@ Not connected → teach the user: [references/connection.md](references/connecti
 
 1. `blender_get_scene_info` (or screenshot)
 2. Plan → load the right subskill below
-3. Small `blender_execute_blender_code` steps (save `.blend` before destructive ops)
+3. **HARD — one named object per `blender_execute_blender_code`.** Primitive add, rename to `SM_*`/`SK_*`, material, modifier, and join are separate calls (save `.blend` before destructive ops). Never a whole chair/prop in one script — the ledger records one row per call; Revert deletes what that call added.
 4. `blender_get_viewport_screenshot` → compare → fix
 5. Ship: [references/uefn_export.md](references/uefn_export.md) (static) or [references/skeletal_export.md](references/skeletal_export.md) (rigged)
 
