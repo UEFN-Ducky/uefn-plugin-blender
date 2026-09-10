@@ -1,7 +1,7 @@
 {
   "id": "blender",
   "kind": "plugin",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "label": "Blender",
   "description": "Requires Blender 5.1+ (4.x will not connect). Control Blender for 3D modeling and export to UEFN via the official Blender MCP add-on — installed and started automatically. Socket is fixed to localhost:9876.",
   "min_app_version": "1.0.0",

@@ -29,6 +29,19 @@ def test_plugin_json_has_no_host_port_settings() -> None:
     assert '"id": "port"' not in blob
 
 
+def test_win_no_window_kwargs_hides_console() -> None:
+    from backend.deploy_addon import _win_no_window_kwargs
+
+    kw = _win_no_window_kwargs()
+    if sys.platform == "win32":
+        import subprocess
+
+        assert kw.get("creationflags") == getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+        assert kw.get("startupinfo") is not None
+    else:
+        assert kw == {}
+
+
 def test_plain_gui_launch_rules() -> None:
     exe = r'"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe"'
     assert is_plain_gui_launch(exe)
@@ -55,6 +68,7 @@ def test_second_deploy_is_unchanged() -> None:
 if __name__ == "__main__":
     test_host_port_are_locked()
     test_plugin_json_has_no_host_port_settings()
+    test_win_no_window_kwargs_hides_console()
     test_plain_gui_launch_rules()
     test_second_deploy_is_unchanged()
     print("test_deploy_heal.py ok")

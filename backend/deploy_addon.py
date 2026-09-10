@@ -183,12 +183,68 @@ def is_plain_gui_launch(cmdline: str) -> bool:
     return True
 
 
+def _win_no_window_kwargs() -> dict[str, Any]:
+    """Keep console helpers (powershell/taskkill) from flashing a window."""
+    if sys.platform != "win32":
+        return {}
+    si = subprocess.STARTUPINFO()
+    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    si.wShowWindow = 0  # SW_HIDE
+    return {
+        "creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000),
+        "startupinfo": si,
+    }
+
+
+def _win_exe_running(exe_name: str) -> bool:
+    """True when *exe_name* is in the process list. True on snapshot failure so CIM still runs."""
+    if sys.platform != "win32":
+        return False
+    import ctypes
+    from ctypes import wintypes
+
+    class PROCESSENTRY32W(ctypes.Structure):
+        _fields_ = [
+            ("dwSize", wintypes.DWORD),
+            ("cntUsage", wintypes.DWORD),
+            ("th32ProcessID", wintypes.DWORD),
+            ("th32DefaultHeapID", ctypes.c_size_t),
+            ("th32ModuleID", wintypes.DWORD),
+            ("cntThreads", wintypes.DWORD),
+            ("th32ParentProcessID", wintypes.DWORD),
+            ("pcPriClassBase", ctypes.c_long),
+            ("dwFlags", wintypes.DWORD),
+            ("szExeFile", ctypes.c_wchar * 260),
+        ]
+
+    kernel32 = ctypes.windll.kernel32
+    snap = kernel32.CreateToolhelp32Snapshot(0x2, 0)
+    if snap in (-1, ctypes.c_void_p(-1).value):
+        return True
+    want = exe_name.lower()
+    try:
+        entry = PROCESSENTRY32W()
+        entry.dwSize = ctypes.sizeof(PROCESSENTRY32W)
+        ok = kernel32.Process32FirstW(snap, ctypes.byref(entry))
+        while ok:
+            if entry.szExeFile.lower() == want:
+                return True
+            ok = kernel32.Process32NextW(snap, ctypes.byref(entry))
+        return False
+    finally:
+        kernel32.CloseHandle(snap)
+
+
 def _win_blender_procs() -> list[dict[str, Any]]:
-    # ponytail: one CIM query; upgrade to a named-pipe watch if we need sub-second detect.
+    # ponytail: skip CIM when no blender.exe (every Ducky boot). CIM still needed for CommandLine.
+    if not _win_exe_running("blender.exe"):
+        return []
     r = subprocess.run(
         [
             "powershell",
             "-NoProfile",
+            "-WindowStyle",
+            "Hidden",
             "-Command",
             "Get-CimInstance Win32_Process -Filter \"Name='blender.exe'\" "
             "| Select-Object ProcessId,ExecutablePath,CommandLine | ConvertTo-Json -Compress",
@@ -196,6 +252,7 @@ def _win_blender_procs() -> list[dict[str, Any]]:
         capture_output=True,
         text=True,
         timeout=8,
+        **_win_no_window_kwargs(),
     )
     text = (r.stdout or "").strip()
     if not text:
@@ -230,7 +287,12 @@ def list_blender_processes() -> list[dict[str, Any]]:
 
 def _terminate(pid: int) -> None:
     if sys.platform == "win32":
-        subprocess.run(["taskkill", "/PID", str(pid)], capture_output=True, timeout=10)
+        subprocess.run(
+            ["taskkill", "/PID", str(pid)],
+            capture_output=True,
+            timeout=10,
+            **_win_no_window_kwargs(),
+        )
         return
     os.kill(pid, 15)
 
@@ -357,6 +419,10 @@ def _self_check() -> None:
     assert is_plain_gui_launch(r'"C:\Program Files\Blender Foundation\Blender 5.2\blender.exe"')
     assert not is_plain_gui_launch(r'"C:\Blender\blender.exe" C:\isle.blend')
     assert not is_plain_gui_launch(r'"C:\Blender\blender.exe" --background')
+    if sys.platform == "win32":
+        kw = _win_no_window_kwargs()
+        assert kw.get("creationflags")
+        assert kw.get("startupinfo") is not None
     root = Path(__file__).resolve().parents[1]
     with tempfile.TemporaryDirectory() as tmp:
         new, old = Path(tmp) / "5.1", Path(tmp) / "4.2"
