@@ -74,6 +74,24 @@ def _copy_tree(src: Path, dest: Path) -> None:
     shutil.copytree(src, dest)
 
 
+def needs_upgrade_warning(roots: list[Path] | None = None) -> str:
+    """Loud warning when no Blender >= 5.1 user folder exists."""
+    versions = list(roots) if roots is not None else blender_user_roots()
+    if any(_version_ok(p) for p in versions):
+        return ""
+    old = [p.name for p in versions]
+    if old:
+        return (
+            f"WARNING: Blender {', '.join(old)} found — this plugin needs Blender "
+            f"{MIN_BLENDER}+. 4.x cannot run the official MCP add-on. Install 5.1 "
+            "from blender.org, open it once, then restart Blender."
+        )
+    return (
+        f"WARNING: this plugin needs Blender {MIN_BLENDER}+. Install it from blender.org, "
+        "open it once, then restart Blender."
+    )
+
+
 def _remove_legacy(ver_root: Path) -> None:
     """Old community add-on listened on the same port — take it off disk."""
     shutil.rmtree(ver_root / "scripts" / "addons" / _LEGACY_ADDON, ignore_errors=True)
@@ -95,9 +113,12 @@ def deploy_addon(*, root: Path | None = None, roots: list[Path] | None = None) -
 
     versions = list(roots) if roots is not None else blender_user_roots()
     if not versions:
+        warn = needs_upgrade_warning([])
         return {
             "ok": False,
-            "error": f"Blender user folder not found. Install Blender {MIN_BLENDER}+, launch it once, then call blender_redeploy_addon.",
+            "error": warn,
+            "requires_blender": f"{MIN_BLENDER}+",
+            "warning": warn,
             "deployed": [],
         }
 
@@ -120,12 +141,21 @@ def deploy_addon(*, root: Path | None = None, roots: list[Path] | None = None) -
         except OSError as exc:
             errors.append(f"{ver_root}: {exc}")
 
+    warning = needs_upgrade_warning(versions)
     note = ""
     if deployed:
         note = "Restart Blender once if it was already open so the add-on loads and the server auto-starts on 9876."
-    elif skipped:
-        note = f"Only Blender < {MIN_BLENDER} found — the official MCP add-on needs Blender {MIN_BLENDER}+."
-    return {"ok": bool(deployed) and not errors, "deployed": deployed, "skipped": skipped, "errors": errors, "note": note}
+    elif warning:
+        note = warning
+    return {
+        "ok": bool(deployed) and not errors,
+        "requires_blender": f"{MIN_BLENDER}+",
+        "deployed": deployed,
+        "skipped": skipped,
+        "errors": errors,
+        "warning": warning,
+        "note": note,
+    }
 
 
 def _self_check() -> None:
@@ -143,6 +173,10 @@ def _self_check() -> None:
         assert (new / "scripts" / "startup" / STARTUP_NAME).is_file()
         assert result["skipped"] == ["4.2 (needs Blender 5.1+)"], result
         assert not (old / "scripts" / "addons" / _LEGACY_ADDON).exists()
+        warn_only = deploy_addon(root=root, roots=[old])
+        assert "WARNING" in (warn_only.get("warning") or ""), warn_only
+        assert "5.1" in warn_only["warning"]
+        assert not needs_upgrade_warning([new])
     print("deploy_addon.py self-check ok")
 
 

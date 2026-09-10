@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from .connection import DEFAULT_HOST, DEFAULT_PORT, execute
-from .deploy_addon import MIN_BLENDER, deploy_addon
+from .deploy_addon import MIN_BLENDER, blender_user_roots, deploy_addon, needs_upgrade_warning
 
 log = logging.getLogger("uefn.plugin.blender")
 PLUGIN_ID = "blender"
@@ -53,6 +53,9 @@ def _socket_live() -> tuple[bool, str]:
         sock.connect((host, port))
         return True, f"Connected · {host}:{port}"
     except OSError:
+        warn = needs_upgrade_warning()
+        if warn:
+            return False, f"Offline · needs Blender {MIN_BLENDER}+ ({host}:{port})"
         return False, f"Offline · open Blender {MIN_BLENDER}+ ({host}:{port})"
     finally:
         try:
@@ -296,26 +299,34 @@ def register(api) -> None:
     def blender_status() -> str:
         """Ping the official Blender MCP add-on (Blender 5.1+) and report deploy paths."""
         host, port = _host_port()
+        warning = needs_upgrade_warning()
+        payload: dict[str, Any] = {
+            "host": host,
+            "port": port,
+            "requires_blender": f"{MIN_BLENDER}+",
+        }
         try:
             resp = _execute("import bpy\nresult = {'ok': True, 'blender': bpy.app.version_string, 'file': bpy.data.filepath}")
-            info = {"connected": True, **resp["result"], "hint": "Ready."}
+            payload.update({"connected": True, **resp["result"], "hint": "Ready."})
         except Exception as exc:
-            info = {
-                "connected": False,
-                "detail": str(exc),
-                "hint": (
-                    f"Open Blender {MIN_BLENDER}+ (restart it once after the plugin was enabled). "
-                    "Preferences → Add-ons → MCP must be enabled with Allow Online Access on — "
-                    "the startup script does that automatically."
-                ),
-            }
+            payload.update(
+                {
+                    "connected": False,
+                    "detail": str(exc),
+                    "hint": (
+                        f"WARNING: this plugin needs Blender {MIN_BLENDER}+. 4.x will not connect. "
+                        "Install 5.1 from blender.org, open it once, then restart Blender. "
+                        "Preferences → Add-ons → MCP must be enabled with Allow Online Access on."
+                    ),
+                }
+            )
+        if warning:
+            payload["warning"] = warning
         try:
-            from .deploy_addon import blender_user_roots
-
-            info["blender_user_roots"] = [str(p) for p in blender_user_roots()]
+            payload["blender_user_roots"] = [str(p) for p in blender_user_roots()]
         except Exception:
             pass
-        return _dumps({"host": host, "port": port, **info})
+        return _dumps(payload)
 
     @api.tool(name="blender_redeploy_addon", intent=r"\bblender\b")
     def blender_redeploy_addon() -> str:

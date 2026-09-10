@@ -1,9 +1,9 @@
 {
   "id": "blender",
   "kind": "plugin",
-  "version": "1.0.24",
+  "version": "1.0.25",
   "label": "Blender",
-  "description": "Control Blender 5.1+ for 3D modeling and export to UEFN via the official Blender MCP add-on. The add-on is installed into Blender automatically — open Blender after enabling.",
+  "description": "Requires Blender 5.1+ (4.x will not connect). Control Blender for 3D modeling and export to UEFN via the official Blender MCP add-on — installed into Blender automatically.",
   "min_app_version": "1.0.0",
   "default_enabled": false,
   "secret_keys": [],
@@ -19,9 +19,17 @@
     "settings.sections": [
       {
         "tab": "Blender",
+        "id": "requires",
+        "title": "Requires Blender 5.1+",
+        "description": "WARNING: this plugin only works with Blender 5.1 or newer. 4.x cannot run the official MCP add-on and will not connect. Install 5.1 from blender.org, open it once, then restart Blender after this plugin is enabled.",
+        "order": 1,
+        "properties": []
+      },
+      {
+        "tab": "Blender",
         "id": "connection",
         "title": "Connection",
-        "description": "On enable, this plugin copies the official Blender MCP add-on (Blender 5.1+) into your Blender user extensions and a startup script that enables it. Open (or restart) Blender — the server auto-starts on the port below. Use blender_status / blender_redeploy_addon tools if needed.",
+        "description": "On enable, this plugin copies the official Blender MCP add-on into your Blender 5.1+ user extensions and a startup script that enables it. Open (or restart) Blender 5.1+ — the server auto-starts on the port below.",
         "order": 10,
         "properties": [
           {
@@ -49,15 +57,15 @@
       "steps": [
         {
           "target": "settings.tab.blender",
-          "title": "Blender plugin enabled",
-          "body": "The official Blender MCP add-on was copied into Blender 5.1+. Restart Blender once: the startup script turns on Allow Online Access, enables the add-on, and starts its server on 9876. No uv / GitHub install, no IDE MCP config.",
+          "title": "Requires Blender 5.1+",
+          "body": "WARNING: Blender 4.x cannot run this plugin. Install Blender 5.1 or newer from blender.org, open it once, then restart it so the MCP add-on auto-starts on port 9876. No uv / GitHub install.",
           "advance": "next",
           "mode": "rect"
         },
         {
           "target": "settings.tab.blender",
           "title": "Talk to Blender",
-          "body": "With Blender open, ask the agent to inspect the scene, find the heaviest mesh, rename datablocks, or model. Tools appear under blender_*. For text/image-to-3D generation, install the meshy or 3D AI Studio Store plugin.",
+          "body": "With Blender 5.1+ open, ask the agent to inspect the scene, find the heaviest mesh, rename datablocks, or model. Tools appear under blender_*. For text/image-to-3D generation, install the meshy or 3D AI Studio Store plugin.",
           "advance": "next"
         }
       ]
