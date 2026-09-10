@@ -161,9 +161,25 @@ else:
 | `TypeError` calling an op with a dict first argument | Context-dict override removed in 4.0 | `bpy.context.temp_override(...)` |
 | Stale `len(mesh.vertices)` after edit-mode ops | `ob.data` not synced while in edit mode | Read via `bmesh.from_edit_mesh`, or switch to OBJECT mode first |
 
+## The `result` contract (official MCP add-on)
+
+Every `blender_execute_blender_code` call runs inside Blender with a fresh namespace where `result = {}` is predefined. Assign a **dict** of JSON-friendly values to it — that dict is the tool's return value:
+
+```python
+import bpy
+ob = bpy.data.objects["SM_Crate"]
+result = {"name": ob.name, "dims": [round(v, 3) for v in ob.dimensions], "verts": len(ob.data.vertices)}
+```
+
+- Not a dict (`result = ob.name`) → error `The result variable must be a dict`.
+- Datablocks / Vectors in `result` are `repr`'d, not serialized — return `.name`, `list(vec)`, numbers.
+- `print()` comes back as `stdout`; uncaught exceptions come back as the error message with traceback.
+- Sandboxed: `sys.exit`, `bpy.ops.wm.quit_blender`, `read_factory_settings`, `read_userpref` are blocked.
+- Unsure of an operator or property name? `blender_get_python_api_docs("bpy.ops.mesh.primitive_*")` — live from the running Blender.
+
 ## Keep scripts small and idempotent
 
-Each `blender_execute_blender_code` call should do ONE step and be safe to re-run (calls can be retried after partial failures):
+Each call should do ONE step on ONE named object and be safe to re-run (calls can be retried after partial failures):
 
 ```python
 import bpy
@@ -173,10 +189,11 @@ if ob is None:
     mesh = bpy.data.meshes.new(name)
     ob = bpy.data.objects.new(name, mesh)
     bpy.context.scene.collection.objects.link(ob)
+result = {"name": ob.name, "created": ob.data.vertices is not None}
 ```
 
 - Rebind by name at the top of every script; assume nothing survived from the last call.
-- Print a one-line result at the end (`print(ob.name, ob.dimensions)`) — stdout comes back through the tool.
+- Inspect before you mutate: a read-only call that lists candidates beats a KeyError.
 - Between steps, verify with `blender_get_scene_info` / `blender_get_object_info` / screenshot per `verify_loop`.
 
 ## Version notes

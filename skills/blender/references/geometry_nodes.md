@@ -59,6 +59,36 @@ with bpy.context.temp_override(object=ob, active_object=ob, selected_objects=[ob
 
 Then `mesh_cleanup`, name `SM_*`, purge helpers.
 
+## Document an existing tree (frames + Text datablock)
+
+Read-only pass first, then one mutating call that adds frames and a note:
+
+```python
+import bpy
+ng = bpy.data.node_groups["GN_Scatter"]
+links = [(l.from_node.name, l.from_socket.name, l.to_node.name, l.to_socket.name) for l in ng.links]
+nodes = [{"name": n.name, "type": n.bl_idname, "label": n.label, "parent": n.parent.name if n.parent else None} for n in ng.nodes]
+result = {"nodes": nodes, "links": links}
+```
+
+```python
+import bpy
+ng = bpy.data.node_groups["GN_Scatter"]
+groups = {"Distribute": ["Distribute Points on Faces", "Random Value"], "Instance": ["Instance on Points", "Realize Instances"]}
+for label, names in groups.items():
+    frame = ng.nodes.new("NodeFrame"); frame.label = label; frame.name = "F_" + label
+    for n in names:
+        node = ng.nodes.get(n)
+        if node is not None:
+            node.parent = frame
+txt = bpy.data.texts.get("GN_Notes") or bpy.data.texts.new("GN_Notes")
+txt.clear()
+txt.write(f"{ng.name}: {len(ng.nodes)} nodes\n" + "\n".join(f"- {n.name} ({n.bl_idname})" for n in ng.nodes if n.bl_idname != "NodeFrame"))
+result = {"frames": list(groups), "text": txt.name}
+```
+
+Parenting to a frame keeps the node's absolute position; set `frame.shrink = True` so it wraps the children.
+
 ## Scatter discipline
 
 - Cap instance counts before realize (hundreds, not hundreds of thousands).

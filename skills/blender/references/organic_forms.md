@@ -185,7 +185,7 @@ Escalate when deterministic tools plateau:
 - **Surface detail first**: a `DisplaceModifier` with a procedural `Texture` (`direction='NORMAL'`, low `strength`) fakes skin/rock micro-relief cheaply — try before sculpting.
 - **`sculpting` subskill** — Multires + mesh filters + displacement pipelines, for believable organic detail meant to be baked (`texture_bake`).
 - **`sculpt_brushes` subskill** — real brush strokes (Crease Sharp, Clay, Smooth…) scripted via viewport-framed `brush_stroke`, plus masks + `mesh_filter` for brush-quality smoothing. Needs the framing/setup helpers there — don't hand-roll strokes outside it.
-- **AI generation** — when the lifeform is beyond parametric assembly (realistic animal, detailed monster): `blender_generate_hyper3d_model_via_text` / `blender_generate_hyper3d_model_via_images` then `blender_poll_rodin_job_status` + `blender_import_generated_asset`; or `blender_generate_hunyuan3d_model` + `blender_poll_hunyuan_job_status` + `blender_import_generated_asset_hunyuan` (check the `*_status` tools first). Generated meshes are dense and flow-less: voxel remesh + `retopology` + `uv_workflow` before UEFN.
+- **AI generation** — when the lifeform is beyond parametric assembly (realistic animal, detailed monster): use the **meshy** or **studio3d** Store plugin to generate, then `import_assets` here. Generated meshes are dense and flow-less: voxel remesh + `retopology` + `uv_workflow` before UEFN.
 
 ## Version notes
 

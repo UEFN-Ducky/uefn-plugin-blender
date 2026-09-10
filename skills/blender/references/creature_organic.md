@@ -86,7 +86,7 @@ sol.use_even_offset = True
 
 ## Generated / sculpted body → hand retopo
 
-Hyper3D (`blender_generate_hyper3d_model_via_text`, import with `blender_import_generated_asset`) and Hunyuan3D (`blender_generate_hunyuan3d_model`, import with `blender_import_generated_asset_hunyuan`) produce tri-soup: great mass reference, never a final skinned mesh. Pipeline:
+AI generators (Store plugins **meshy** / **studio3d**, imported via `import_assets`) produce tri-soup: great mass reference, never a final skinned mesh. Pipeline:
 
 1. **Merge & even out** — voxel remesh (configure the mesh datablock; the operator takes no parameters):
 

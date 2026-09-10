@@ -1,23 +1,25 @@
-"""Blender — Store desktop plugin (direct TCP to Blender MCP addon)."""
+"""Blender — Store desktop plugin. Talks to the official Blender Lab MCP add-on.
+
+The add-on (assets/mcp, GPL, vendored untouched) exposes exactly one request
+type: ``execute`` Python code that assigns a dict to ``result``. Every tool here
+is sugar over that call. Ducky is the MCP server and the LLM client — no
+second MCP server, no uvx.
+"""
 
 from __future__ import annotations
 
-import base64
 import json
 import logging
 import os
 import tempfile
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 
-from .connection import DEFAULT_HOST, DEFAULT_PORT, BlenderConnection
-from .deploy_addon import deploy_addon
+from .connection import DEFAULT_HOST, DEFAULT_PORT, execute
+from .deploy_addon import MIN_BLENDER, deploy_addon
 
 log = logging.getLogger("uefn.plugin.blender")
 PLUGIN_ID = "blender"
-
-_conn: BlenderConnection | None = None
 
 
 def _prefs() -> dict[str, Any]:
@@ -41,7 +43,7 @@ def _host_port() -> tuple[str, int]:
 
 
 def _socket_live() -> tuple[bool, str]:
-    """Cheap TCP probe for the Connections menu — no scene fetch."""
+    """Cheap TCP probe for the Connections menu — no code execution."""
     import socket
 
     host, port = _host_port()
@@ -51,7 +53,7 @@ def _socket_live() -> tuple[bool, str]:
         sock.connect((host, port))
         return True, f"Connected · {host}:{port}"
     except OSError:
-        return False, f"Offline · open Blender ({host}:{port})"
+        return False, f"Offline · open Blender {MIN_BLENDER}+ ({host}:{port})"
     finally:
         try:
             sock.close()
@@ -59,52 +61,22 @@ def _socket_live() -> tuple[bool, str]:
             pass
 
 
-def _get_conn() -> BlenderConnection:
-    global _conn
+def _execute(code: str, *, strict_json: bool = True) -> dict[str, Any]:
     host, port = _host_port()
-    if _conn is not None and (_conn.host != host or _conn.port != port):
-        _conn.disconnect()
-        _conn = None
-    if _conn is not None:
-        try:
-            _conn.send_command("get_polyhaven_status")
-            return _conn
-        except Exception:
-            try:
-                _conn.disconnect()
-            except Exception:
-                pass
-            _conn = None
-    _conn = BlenderConnection(host=host, port=port)
-    if not _conn.connect():
-        _conn = None
-        raise ConnectionError(
-            f"Open Blender — addon should auto-start on {host}:{port}. "
-            "Restart Blender once after first plugin install. "
-            "If Blender was never launched, install it, open once, then call blender_redeploy_addon."
-        )
-    return _conn
-
-
-def _cmd(command_type: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
-    return _get_conn().send_command(command_type, params)
+    return execute(code, host=host, port=port, strict_json=strict_json)
 
 
 def _dumps(obj: Any) -> str:
     return json.dumps(obj, indent=2, default=str)
 
 
-def _scene_object_names() -> list[str]:
-    # get_scene_info only returns the first 10 objects — never diff from that.
+def _scene_object_names() -> list[str] | None:
+    """Every object name in the file, or None if Blender could not be asked."""
     try:
-        result = _cmd(
-            "execute_code",
-            {"code": "import bpy\nprint('\\n'.join(o.name for o in bpy.data.objects))"},
-        )
-        text = str(result.get("result") or "")
-        return [ln.strip() for ln in text.splitlines() if ln.strip()]
+        resp = _execute("import bpy\nresult = {'names': [o.name for o in bpy.data.objects]}")
+        return [str(n) for n in resp["result"]["names"]]
     except Exception:
-        return []
+        return None
 
 
 def _delete_objects_code(names: list[str]) -> str:
@@ -114,10 +86,15 @@ def _delete_objects_code(names: list[str]) -> str:
         lines.append(f"o = bpy.data.objects.get({dumped})")
         lines.append("if o is not None:")
         lines.append("    bpy.data.objects.remove(o, do_unlink=True)")
+    lines.append("result = {'ok': True}")
     return "\n".join(lines)
 
 
-def _sidecar_for_execute(before: list[str], after: list[str]) -> dict[str, Any] | None:
+def _sidecar_for_execute(before: list[str] | None, after: list[str] | None) -> dict[str, Any] | None:
+    # No snapshot → no sidecar. A missing "before" would make every object look
+    # added and Revert would wipe the scene.
+    if before is None or after is None:
+        return None
     before_set, after_set = set(before), set(after)
     added = [n for n in after if n not in before_set]
     removed = [n for n in before if n not in after_set]
@@ -156,25 +133,152 @@ def _sidecar_for_execute(before: list[str], after: list[str]) -> dict[str, Any] 
     }
 
 
-def _process_bbox(original_bbox: list[float] | list[int] | None) -> list[int] | None:
-    if original_bbox is None:
-        return None
-    if all(isinstance(i, int) for i in original_bbox):
-        return list(original_bbox)
-    if any(float(i) <= 0 for i in original_bbox):
-        raise ValueError("bbox values must be > 0")
-    mx = max(float(i) for i in original_bbox)
-    return [int(float(i) / mx * 100) for i in original_bbox]
+_SCENE_INFO_CODE = """
+import bpy
+sc = bpy.context.scene
+result = {
+    "blender": bpy.app.version_string,
+    "file": bpy.data.filepath,
+    "scene": sc.name,
+    "frame": sc.frame_current,
+    "mode": bpy.context.mode,
+    "active": bpy.context.view_layer.objects.active.name if bpy.context.view_layer.objects.active else None,
+    "selected": [o.name for o in bpy.context.selected_objects],
+    "collections": [c.name for c in bpy.data.collections],
+    "materials": [m.name for m in bpy.data.materials],
+    "object_count": len(bpy.data.objects),
+    "objects": [
+        {
+            "name": o.name,
+            "type": o.type,
+            "collection": o.users_collection[0].name if o.users_collection else None,
+            "location": [round(v, 3) for v in o.location],
+            "dimensions": [round(v, 3) for v in o.dimensions],
+            "verts": len(o.data.vertices) if o.type == "MESH" else None,
+        }
+        for o in bpy.data.objects
+    ],
+}
+"""
+
+_OBJECT_INFO_CODE = """
+import bpy
+ob = bpy.data.objects.get(NAME)
+if ob is None:
+    raise KeyError("no object " + repr(NAME) + "; have " + repr(sorted(o.name for o in bpy.data.objects)))
+info = {
+    "name": ob.name, "type": ob.type, "data": ob.data.name if ob.data else None,
+    "collections": [c.name for c in ob.users_collection],
+    "parent": ob.parent.name if ob.parent else None,
+    "location": list(ob.location), "rotation_euler": list(ob.rotation_euler), "scale": list(ob.scale),
+    "dimensions": list(ob.dimensions),
+    "visible": ob.visible_get(),
+    "modifiers": [{"name": m.name, "type": m.type, "show_render": m.show_render} for m in ob.modifiers],
+    "materials": [s.material.name if s.material else None for s in ob.material_slots],
+}
+if ob.type == "MESH":
+    me = ob.data
+    info["mesh"] = {"verts": len(me.vertices), "edges": len(me.edges), "faces": len(me.polygons),
+                    "tris": sum(len(p.vertices) - 2 for p in me.polygons),
+                    "uv_layers": [u.name for u in me.uv_layers], "users": me.users}
+result = info
+"""
+
+_SCREENSHOT_CODE = """
+import bpy
+path = PATH
+wm = bpy.context.window_manager
+hit = None
+for w in wm.windows:
+    for a in w.screen.areas:
+        if a.type == 'VIEW_3D':
+            hit = (w, a)
+            break
+    if hit:
+        break
+if hit is None:
+    raise RuntimeError("No 3D Viewport is open in Blender (background mode has no viewport)")
+w, a = hit
+region = next(r for r in a.regions if r.type == 'WINDOW')
+with bpy.context.temp_override(window=w, area=a, region=region):
+    bpy.ops.screen.screenshot_area(filepath=path)
+img = bpy.data.images.load(path)
+width, height = img.size
+if max(width, height) > MAX_SIZE:
+    s = MAX_SIZE / max(width, height)
+    img.scale(int(width * s), int(height * s))
+    img.file_format = 'PNG'
+    img.save()
+    width, height = img.size
+bpy.data.images.remove(img)
+result = {"width": width, "height": height}
+"""
+
+_API_DOCS_CODE = """
+import bpy, importlib, inspect
+ident = IDENT
+
+def _resolve(path):
+    parts = path.split(".")
+    obj = importlib.import_module(parts[0])
+    for p in parts[1:]:
+        obj = getattr(obj, p)
+    return obj
+
+out = {"identifier": ident}
+if ident.endswith("*"):
+    parent, _, stem = ident[:-1].rpartition(".")
+    names = dir(_resolve(parent)) if parent else ["bpy", "bmesh", "mathutils", "bpy.data", "bpy.ops", "bpy.types", "bpy.context"]
+    out["matches"] = sorted(n for n in names if n.startswith(stem) and not n.startswith("_"))[:200]
+else:
+    obj = _resolve(ident)
+    out["doc"] = (getattr(obj, "__doc__", None) or "").strip()[:4000]
+    rna = None
+    try:
+        rna = obj.get_rna_type()
+    except Exception:
+        rna = getattr(obj, "bl_rna", None)
+    if rna is not None:
+        out["description"] = rna.description
+        props = []
+        for p in rna.properties:
+            if p.identifier == "rna_type":
+                continue
+            d = {"name": p.identifier, "type": p.type, "description": p.description}
+            if p.type == "ENUM":
+                d["items"] = [i.identifier for i in p.enum_items][:40]
+            try:
+                d["default"] = list(p.default_array) if getattr(p, "is_array", False) else p.default
+            except Exception:
+                pass
+            props.append(d)
+        out["properties"] = props[:150]
+        funcs = getattr(rna, "functions", None)
+        if funcs:
+            out["functions"] = [
+                {"name": f.identifier, "description": f.description,
+                 "params": [{"name": pp.identifier, "type": pp.type, "output": pp.is_output} for pp in f.parameters]}
+                for f in funcs
+            ][:80]
+    elif callable(obj):
+        try:
+            out["signature"] = str(inspect.signature(obj))
+        except Exception:
+            pass
+        members = [n for n in dir(obj) if not n.startswith("_")]
+        if members:
+            out["members"] = members[:200]
+    else:
+        out["members"] = [n for n in dir(obj) if not n.startswith("_")][:200]
+result = out
+"""
 
 
 def register(api) -> None:
-    import os
-
     # MCP bridge process: skip disk deploy (slow); use blender_redeploy_addon when needed.
     if os.environ.get("UEFN_DUCKY_MCP_BRIDGE") != "1":
         try:
-            result = deploy_addon()
-            api.log(f"addon deploy: {result}")
+            api.log(f"addon deploy: {deploy_addon()}")
         except Exception as exc:
             api.log(f"addon deploy failed: {exc}")
     else:
@@ -190,75 +294,58 @@ def register(api) -> None:
 
     @api.tool(name="blender_status", intent=r"\bblender\b")
     def blender_status() -> str:
-        """Probe Blender MCP socket + report last addon deploy paths."""
+        """Ping the official Blender MCP add-on (Blender 5.1+) and report deploy paths."""
         host, port = _host_port()
-        connected = False
-        detail: Any = None
         try:
-            detail = _cmd("get_scene_info")
-            connected = True
+            resp = _execute("import bpy\nresult = {'ok': True, 'blender': bpy.app.version_string, 'file': bpy.data.filepath}")
+            info = {"connected": True, **resp["result"], "hint": "Ready."}
         except Exception as exc:
-            detail = str(exc)
-        roots = []
+            info = {
+                "connected": False,
+                "detail": str(exc),
+                "hint": (
+                    f"Open Blender {MIN_BLENDER}+ (restart it once after the plugin was enabled). "
+                    "Preferences → Add-ons → MCP must be enabled with Allow Online Access on — "
+                    "the startup script does that automatically."
+                ),
+            }
         try:
             from .deploy_addon import blender_user_roots
 
-            roots = [str(p) for p in blender_user_roots()]
+            info["blender_user_roots"] = [str(p) for p in blender_user_roots()]
         except Exception:
             pass
-        return _dumps(
-            {
-                "host": host,
-                "port": port,
-                "connected": connected,
-                "detail": detail if not connected else "ok",
-                "blender_user_roots": roots,
-                "hint": (
-                    "Open Blender (restart once after first install)."
-                    if not connected
-                    else "Ready."
-                ),
-            }
-        )
+        return _dumps({"host": host, "port": port, **info})
 
     @api.tool(name="blender_redeploy_addon", intent=r"\bblender\b")
     def blender_redeploy_addon() -> str:
-        """Re-copy the Blender MCP addon into Blender user folders (then restart Blender)."""
+        """Re-copy the official MCP add-on into Blender 5.1+ user folders (then restart Blender)."""
         return _dumps(deploy_addon())
 
     @api.tool(name="blender_get_scene_info", intent=r"\bblender\b")
     def blender_get_scene_info() -> str:
-        """Get detailed information about the current Blender scene."""
+        """Scene summary: every object (name, type, collection, location, dimensions, verts), collections, materials, mode, selection."""
         try:
-            return _dumps(_cmd("get_scene_info"))
+            return _dumps(_execute(_SCENE_INFO_CODE)["result"])
         except Exception as exc:
             return f"Error getting scene info: {exc}"
 
     @api.tool(name="blender_get_object_info", intent=r"\bblender\b")
     def blender_get_object_info(object_name: str) -> str:
-        """Get detailed information about a specific object in the Blender scene."""
+        """One object in detail: transform, dimensions, collections, modifiers, materials, mesh counts, UV layers."""
         try:
-            return _dumps(_cmd("get_object_info", {"name": object_name}))
+            code = _OBJECT_INFO_CODE.replace("NAME", json.dumps(object_name))
+            return _dumps(_execute(code)["result"])
         except Exception as exc:
             return f"Error getting object info: {exc}"
 
     @api.tool(name="blender_get_viewport_screenshot", intent=r"\bblender\b")
     def blender_get_viewport_screenshot(max_size: int = 1000) -> str:
-        """Capture the Blender 3D viewport.
-
-        Returns a short JSON path/media_url payload — never base64. Huge PNG
-        blobs poison coding-agent resume sessions and stuck chats.
-        """
+        """Capture the Blender 3D viewport. Returns a short JSON path payload plus the image — never base64."""
+        temp_path = os.path.join(tempfile.gettempdir(), f"blender_screenshot_{os.getpid()}.png")
         try:
-            temp_path = os.path.join(
-                tempfile.gettempdir(), f"blender_screenshot_{os.getpid()}.png"
-            )
-            result = _cmd(
-                "get_viewport_screenshot",
-                {"max_size": max_size, "filepath": temp_path, "format": "png"},
-            )
-            if "error" in result:
-                return f"Error: {result['error']}"
+            code = _SCREENSHOT_CODE.replace("PATH", json.dumps(temp_path)).replace("MAX_SIZE", str(int(max_size)))
+            result = _execute(code)["result"]
             if not os.path.exists(temp_path):
                 return "Error: screenshot file was not created"
             raw = Path(temp_path).read_bytes()
@@ -280,10 +367,7 @@ def register(api) -> None:
                 "media_url": saved.get("media_url"),
                 "width": result.get("width"),
                 "height": result.get("height"),
-                "hint": (
-                    "Use project path for file work; media_url/capture_path "
-                    "are AppData preview-only. Image also returned as MCP content."
-                ),
+                "hint": "media_url/capture_path are AppData preview-only. Image also returned as MCP content.",
             }
             text = _dumps(payload)
             project_path = str(saved.get("path") or "")
@@ -295,322 +379,38 @@ def register(api) -> None:
 
     @api.tool(name="blender_execute_blender_code", intent=r"\bblender\b")
     def blender_execute_blender_code(code: str) -> str:
-        """Execute Python code in Blender. One named object per call (primitive, rename, material, or join) — never a whole asset in one script."""
+        """Run Python inside Blender (official MCP add-on).
+
+        Contract: `import bpy`; assign a JSON-friendly dict to `result`; print() comes back as stdout;
+        no sys.exit / quit. One named object per call (primitive, rename, material, or join) — never a whole
+        asset in one script; the ledger records one revertable row per call.
+        """
         before = _scene_object_names()
         try:
-            result = _cmd("execute_code", {"code": code})
+            resp = _execute(code, strict_json=False)
         except Exception as exc:
             return f"Error executing code: {exc}"
         after = _scene_object_names()
-        payload: dict[str, Any] = {
-            "ok": True,
-            "message": f"Code executed successfully: {result.get('result', '')}",
-            "result": result.get("result", ""),
-        }
+        payload: dict[str, Any] = {"ok": True, "result": resp.get("result", {})}
+        if resp.get("stdout"):
+            payload["stdout"] = resp["stdout"]
+        if resp.get("stderr"):
+            payload["stderr"] = resp["stderr"]
         sidecar = _sidecar_for_execute(before, after)
         if sidecar:
             payload["_ducky"] = sidecar
         return _dumps(payload)
 
-    @api.tool(name="blender_get_polyhaven_status", intent=r"\b(blender|polyhaven)\b")
-    def blender_get_polyhaven_status() -> str:
-        """Check if Poly Haven integration is enabled in Blender."""
+    @api.tool(name="blender_get_python_api_docs", intent=r"\bblender\b")
+    def blender_get_python_api_docs(identifier: str) -> str:
+        """Live bpy API docs from the running Blender: `bpy.ops.mesh.primitive_cube_add`, `bpy.types.Object`,
+        `bmesh.ops.bevel`. End with `*` to discover names (`bpy.ops.mesh.primitive_*`). Use before inventing an operator."""
+        ident = identifier.strip()
+        if not ident or any(c in ident for c in " ()[]\"'\n;"):
+            return "Error: pass a dotted identifier such as bpy.ops.mesh.primitive_cube_add or bpy.types.Mesh.*"
         try:
-            result = _cmd("get_polyhaven_status")
-            return str(result.get("message") or _dumps(result))
+            return _dumps(_execute(_API_DOCS_CODE.replace("IDENT", json.dumps(ident)), strict_json=False)["result"])
         except Exception as exc:
-            return f"Error checking PolyHaven status: {exc}"
-
-    @api.tool(name="blender_get_polyhaven_categories", intent=r"\b(blender|polyhaven)\b")
-    def blender_get_polyhaven_categories(asset_type: str = "hdris") -> str:
-        """List Poly Haven categories for hdris, textures, models, or all."""
-        try:
-            result = _cmd("get_polyhaven_categories", {"asset_type": asset_type})
-            if "error" in result:
-                return f"Error: {result['error']}"
-            cats = result.get("categories") or {}
-            lines = [f"Categories for {asset_type}:", ""]
-            for category, count in sorted(cats.items(), key=lambda x: x[1], reverse=True):
-                lines.append(f"- {category}: {count} assets")
-            return "\n".join(lines)
-        except Exception as exc:
-            return f"Error getting Polyhaven categories: {exc}"
-
-    @api.tool(name="blender_search_polyhaven_assets", intent=r"\b(blender|polyhaven)\b")
-    def blender_search_polyhaven_assets(
-        asset_type: str = "all",
-        categories: str = "",
-    ) -> str:
-        """Search Poly Haven assets (hdris, textures, models, all)."""
-        try:
-            result = _cmd(
-                "search_polyhaven_assets",
-                {
-                    "asset_type": asset_type,
-                    "categories": categories or None,
-                },
-            )
-            if "error" in result:
-                return f"Error: {result['error']}"
-            return _dumps(result)
-        except Exception as exc:
-            return f"Error searching Polyhaven assets: {exc}"
-
-    @api.tool(name="blender_download_polyhaven_asset", intent=r"\b(blender|polyhaven)\b")
-    def blender_download_polyhaven_asset(
-        asset_id: str,
-        asset_type: str,
-        resolution: str = "1k",
-        file_format: str = "",
-    ) -> str:
-        """Download and import a Poly Haven asset into Blender."""
-        try:
-            result = _cmd(
-                "download_polyhaven_asset",
-                {
-                    "asset_id": asset_id,
-                    "asset_type": asset_type,
-                    "resolution": resolution,
-                    "file_format": file_format or None,
-                },
-            )
-            return _dumps(result)
-        except Exception as exc:
-            return f"Error downloading Polyhaven asset: {exc}"
-
-    @api.tool(name="blender_set_texture", intent=r"\b(blender|polyhaven|texture)\b")
-    def blender_set_texture(object_name: str, texture_id: str) -> str:
-        """Apply a previously downloaded Poly Haven texture to an object."""
-        try:
-            return _dumps(
-                _cmd("set_texture", {"object_name": object_name, "texture_id": texture_id})
-            )
-        except Exception as exc:
-            return f"Error applying texture: {exc}"
-
-    @api.tool(name="blender_get_sketchfab_status", intent=r"\b(blender|sketchfab)\b")
-    def blender_get_sketchfab_status() -> str:
-        """Check if Sketchfab integration is enabled in Blender."""
-        try:
-            result = _cmd("get_sketchfab_status")
-            return str(result.get("message") or _dumps(result))
-        except Exception as exc:
-            return f"Error checking Sketchfab status: {exc}"
-
-    @api.tool(name="blender_search_sketchfab_models", intent=r"\b(blender|sketchfab)\b")
-    def blender_search_sketchfab_models(
-        query: str,
-        categories: str = "",
-        count: int = 20,
-        downloadable: bool = True,
-    ) -> str:
-        """Search Sketchfab models (requires API key in Blender addon prefs)."""
-        try:
-            return _dumps(
-                _cmd(
-                    "search_sketchfab_models",
-                    {
-                        "query": query,
-                        "categories": categories or None,
-                        "count": count,
-                        "downloadable": downloadable,
-                    },
-                )
-            )
-        except Exception as exc:
-            return f"Error searching Sketchfab models: {exc}"
-
-    @api.tool(name="blender_get_sketchfab_model_preview", intent=r"\b(blender|sketchfab)\b")
-    def blender_get_sketchfab_model_preview(uid: str) -> str:
-        """Get a Sketchfab model thumbnail as JSON with base64 image data."""
-        try:
-            result = _cmd("get_sketchfab_model_preview", {"uid": uid})
-            if "error" in result:
-                return f"Error: {result['error']}"
-            return _dumps(result)
-        except Exception as exc:
-            return f"Failed to get preview: {exc}"
-
-    @api.tool(name="blender_download_sketchfab_model", intent=r"\b(blender|sketchfab)\b")
-    def blender_download_sketchfab_model(uid: str, target_size: float) -> str:
-        """Download/import a Sketchfab model; largest dimension scaled to target_size (meters)."""
-        try:
-            return _dumps(
-                _cmd(
-                    "download_sketchfab_model",
-                    {
-                        "uid": uid,
-                        "normalize_size": True,
-                        "target_size": target_size,
-                    },
-                )
-            )
-        except Exception as exc:
-            return f"Error downloading Sketchfab model: {exc}"
-
-    @api.tool(name="blender_get_hyper3d_status", intent=r"\b(blender|hyper3d|rodin)\b")
-    def blender_get_hyper3d_status() -> str:
-        """Check if Hyper3D Rodin integration is enabled in Blender."""
-        try:
-            result = _cmd("get_hyper3d_status")
-            return str(result.get("message") or _dumps(result))
-        except Exception as exc:
-            return f"Error checking Hyper3D status: {exc}"
-
-    @api.tool(name="blender_generate_hyper3d_model_via_text", intent=r"\b(blender|hyper3d|rodin)\b")
-    def blender_generate_hyper3d_model_via_text(
-        text_prompt: str,
-        bbox_condition: list[float] | None = None,
-    ) -> str:
-        """Start a Hyper3D Rodin text-to-3D job. Poll then import_generated_asset."""
-        try:
-            result = _cmd(
-                "create_rodin_job",
-                {
-                    "text_prompt": text_prompt,
-                    "images": None,
-                    "bbox_condition": _process_bbox(bbox_condition),
-                },
-            )
-            if result.get("submit_time"):
-                return _dumps(
-                    {
-                        "task_uuid": result["uuid"],
-                        "subscription_key": result["jobs"]["subscription_key"],
-                    }
-                )
-            return _dumps(result)
-        except Exception as exc:
-            return f"Error generating Hyper3D task: {exc}"
-
-    @api.tool(name="blender_generate_hyper3d_model_via_images", intent=r"\b(blender|hyper3d|rodin)\b")
-    def blender_generate_hyper3d_model_via_images(
-        input_image_paths: list[str] | None = None,
-        input_image_urls: list[str] | None = None,
-        bbox_condition: list[float] | None = None,
-    ) -> str:
-        """Start a Hyper3D Rodin image-to-3D job. Pass paths (MAIN_SITE) or urls (FAL_AI)."""
-        if input_image_paths and input_image_urls:
-            return "Error: Conflict parameters given!"
-        if not input_image_paths and not input_image_urls:
-            return "Error: No image given!"
-        images: Any
-        if input_image_paths is not None:
-            if not all(os.path.exists(p) for p in input_image_paths):
-                return "Error: not all image paths are valid!"
-            images = []
-            for path in input_image_paths:
-                with open(path, "rb") as f:
-                    images.append(
-                        (Path(path).suffix, base64.b64encode(f.read()).decode("ascii"))
-                    )
-        else:
-            assert input_image_urls is not None
-            if not all(urlparse(u).scheme for u in input_image_urls):
-                return "Error: not all image URLs are valid!"
-            images = list(input_image_urls)
-        try:
-            result = _cmd(
-                "create_rodin_job",
-                {
-                    "text_prompt": None,
-                    "images": images,
-                    "bbox_condition": _process_bbox(bbox_condition),
-                },
-            )
-            if result.get("submit_time"):
-                return _dumps(
-                    {
-                        "task_uuid": result["uuid"],
-                        "subscription_key": result["jobs"]["subscription_key"],
-                    }
-                )
-            return _dumps(result)
-        except Exception as exc:
-            return f"Error generating Hyper3D task: {exc}"
-
-    @api.tool(name="blender_poll_rodin_job_status", intent=r"\b(blender|hyper3d|rodin)\b")
-    def blender_poll_rodin_job_status(
-        subscription_key: str = "",
-        request_id: str = "",
-    ) -> str:
-        """Poll Hyper3D Rodin job until Done/COMPLETED (or failed)."""
-        try:
-            kwargs: dict[str, Any] = {}
-            if subscription_key:
-                kwargs["subscription_key"] = subscription_key
-            elif request_id:
-                kwargs["request_id"] = request_id
-            return _dumps(_cmd("poll_rodin_job_status", kwargs))
-        except Exception as exc:
-            return f"Error polling Hyper3D task: {exc}"
-
-    @api.tool(name="blender_import_generated_asset", intent=r"\b(blender|hyper3d|rodin)\b")
-    def blender_import_generated_asset(
-        name: str,
-        task_uuid: str = "",
-        request_id: str = "",
-    ) -> str:
-        """Import a completed Hyper3D Rodin asset into the Blender scene."""
-        try:
-            kwargs: dict[str, Any] = {"name": name}
-            if task_uuid:
-                kwargs["task_uuid"] = task_uuid
-            elif request_id:
-                kwargs["request_id"] = request_id
-            return _dumps(_cmd("import_generated_asset", kwargs))
-        except Exception as exc:
-            return f"Error importing Hyper3D asset: {exc}"
-
-    @api.tool(name="blender_get_hunyuan3d_status", intent=r"\b(blender|hunyuan)\b")
-    def blender_get_hunyuan3d_status() -> str:
-        """Check if Hunyuan3D integration is enabled in Blender."""
-        try:
-            result = _cmd("get_hunyuan3d_status")
-            return str(result.get("message") or _dumps(result))
-        except Exception as exc:
-            return f"Error checking Hunyuan3D status: {exc}"
-
-    @api.tool(name="blender_generate_hunyuan3d_model", intent=r"\b(blender|hunyuan)\b")
-    def blender_generate_hunyuan3d_model(
-        text_prompt: str = "",
-        input_image_url: str = "",
-    ) -> str:
-        """Start a Hunyuan3D generation job (text and/or image)."""
-        try:
-            result = _cmd(
-                "create_hunyuan_job",
-                {
-                    "text_prompt": text_prompt or None,
-                    "image": input_image_url or None,
-                },
-            )
-            job_id = (result.get("Response") or {}).get("JobId")
-            if job_id:
-                return _dumps({"job_id": f"job_{job_id}"})
-            return _dumps(result)
-        except Exception as exc:
-            return f"Error generating Hunyuan3D task: {exc}"
-
-    @api.tool(name="blender_poll_hunyuan_job_status", intent=r"\b(blender|hunyuan)\b")
-    def blender_poll_hunyuan_job_status(job_id: str = "") -> str:
-        """Poll Hunyuan3D job until DONE (or failed)."""
-        try:
-            return _dumps(_cmd("poll_hunyuan_job_status", {"job_id": job_id}))
-        except Exception as exc:
-            return f"Error polling Hunyuan3D task: {exc}"
-
-    @api.tool(name="blender_import_generated_asset_hunyuan", intent=r"\b(blender|hunyuan)\b")
-    def blender_import_generated_asset_hunyuan(name: str, zip_file_url: str) -> str:
-        """Import a completed Hunyuan3D asset from its result zip URL."""
-        try:
-            return _dumps(
-                _cmd(
-                    "import_generated_asset_hunyuan",
-                    {"name": name, "zip_file_url": zip_file_url},
-                )
-            )
-        except Exception as exc:
-            return f"Error importing Hunyuan3D asset: {exc}"
+            return f"Error reading API docs for {ident}: {exc}"
 
     api.log("blender tools registered")

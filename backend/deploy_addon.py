@@ -1,4 +1,12 @@
-"""Deploy the vendored Blender MCP addon into Blender user script folders."""
+"""Deploy the vendored official Blender MCP add-on into Blender 5.1+ user folders.
+
+Layout written per Blender version root (``%APPDATA%/Blender Foundation/Blender/5.1``):
+
+    extensions/user_default/mcp/         ← assets/mcp (GPL, untouched)
+    scripts/startup/uefn_ducky_blender_mcp.py  ← enables online access + add-on
+
+Older Blender versions are skipped: the add-on needs 5.1 (see blender_manifest.toml).
+"""
 
 from __future__ import annotations
 
@@ -9,8 +17,11 @@ from pathlib import Path
 from typing import Any
 
 PLUGIN_ID = "blender"
-ADDON_MODULE = "blendermcp"
-STARTUP_NAME = "uefn_ducky_blendermcp.py"
+ADDON_ID = "mcp"
+MIN_BLENDER = "5.1"
+STARTUP_NAME = "uefn_ducky_blender_mcp.py"
+_LEGACY_ADDON = "blendermcp"
+_LEGACY_STARTUP = "uefn_ducky_blendermcp.py"
 
 
 def plugin_root() -> Path:
@@ -19,11 +30,10 @@ def plugin_root() -> Path:
         from backend.uefn_plugins.store import appdata_uefn_plugins_dir
 
         installed = appdata_uefn_plugins_dir() / PLUGIN_ID
-        if (installed / "assets" / ADDON_MODULE).is_dir():
+        if (installed / "assets" / ADDON_ID).is_dir():
             return installed
     except Exception:
         pass
-    # backend/ is one level under package root
     return Path(__file__).resolve().parents[1]
 
 
@@ -36,11 +46,9 @@ def blender_user_roots() -> list[Path]:
         if appdata:
             candidates.append(Path(appdata) / "Blender Foundation" / "Blender")
     elif sys.platform == "darwin":
-        home = Path.home()
-        candidates.append(home / "Library" / "Application Support" / "Blender")
+        candidates.append(Path.home() / "Library" / "Application Support" / "Blender")
     else:
-        home = Path.home()
-        candidates.append(home / ".config" / "blender")
+        candidates.append(Path.home() / ".config" / "blender")
 
     for base in candidates:
         if not base.is_dir():
@@ -51,23 +59,37 @@ def blender_user_roots() -> list[Path]:
     return roots
 
 
+def _version_ok(root: Path) -> bool:
+    try:
+        major, minor = (int(x) for x in root.name.split(".")[:2])
+    except ValueError:
+        return False
+    need_major, need_minor = (int(x) for x in MIN_BLENDER.split("."))
+    return (major, minor) >= (need_major, need_minor)
+
+
 def _copy_tree(src: Path, dest: Path) -> None:
     if dest.exists():
         shutil.rmtree(dest)
     shutil.copytree(src, dest)
 
 
-def deploy_addon(
-    *,
-    root: Path | None = None,
-    roots: list[Path] | None = None,
-) -> dict[str, Any]:
-    """Copy addon + startup enabler into every Blender user version dir found."""
+def _remove_legacy(ver_root: Path) -> None:
+    """Old community add-on listened on the same port — take it off disk."""
+    shutil.rmtree(ver_root / "scripts" / "addons" / _LEGACY_ADDON, ignore_errors=True)
+    try:
+        (ver_root / "scripts" / "startup" / _LEGACY_STARTUP).unlink()
+    except OSError:
+        pass
+
+
+def deploy_addon(*, root: Path | None = None, roots: list[Path] | None = None) -> dict[str, Any]:
+    """Copy add-on + startup enabler into every Blender >= 5.1 user version dir found."""
     root = root or plugin_root()
-    addon_src = root / "assets" / ADDON_MODULE
+    addon_src = root / "assets" / ADDON_ID
     startup_src = root / "assets" / "startup" / STARTUP_NAME
-    if not addon_src.is_dir():
-        return {"ok": False, "error": f"addon missing at {addon_src}", "deployed": []}
+    if not (addon_src / "blender_manifest.toml").is_file():
+        return {"ok": False, "error": f"add-on missing at {addon_src}", "deployed": []}
     if not startup_src.is_file():
         return {"ok": False, "error": f"startup script missing at {startup_src}", "deployed": []}
 
@@ -75,56 +97,52 @@ def deploy_addon(
     if not versions:
         return {
             "ok": False,
-            "error": (
-                "Blender user folder not found. Install Blender, launch it once, "
-                "then call blender_redeploy_addon."
-            ),
+            "error": f"Blender user folder not found. Install Blender {MIN_BLENDER}+, launch it once, then call blender_redeploy_addon.",
             "deployed": [],
         }
 
     deployed: list[str] = []
+    skipped: list[str] = []
     errors: list[str] = []
     for ver_root in versions:
+        _remove_legacy(ver_root)
+        if not _version_ok(ver_root):
+            skipped.append(f"{ver_root.name} (needs Blender {MIN_BLENDER}+)")
+            continue
         try:
-            addons_dir = ver_root / "scripts" / "addons"
+            ext_dir = ver_root / "extensions" / "user_default"
             startup_dir = ver_root / "scripts" / "startup"
-            addons_dir.mkdir(parents=True, exist_ok=True)
+            ext_dir.mkdir(parents=True, exist_ok=True)
             startup_dir.mkdir(parents=True, exist_ok=True)
-            _copy_tree(addon_src, addons_dir / ADDON_MODULE)
+            _copy_tree(addon_src, ext_dir / ADDON_ID)
             shutil.copy2(startup_src, startup_dir / STARTUP_NAME)
             deployed.append(str(ver_root))
         except OSError as exc:
             errors.append(f"{ver_root}: {exc}")
 
-    return {
-        "ok": bool(deployed) and not errors,
-        "deployed": deployed,
-        "errors": errors,
-        "note": (
-            "Restart Blender once if it was already open so the addon loads "
-            "and the socket auto-starts."
-            if deployed
-            else ""
-        ),
-    }
+    note = ""
+    if deployed:
+        note = "Restart Blender once if it was already open so the add-on loads and the server auto-starts on 9876."
+    elif skipped:
+        note = f"Only Blender < {MIN_BLENDER} found — the official MCP add-on needs Blender {MIN_BLENDER}+."
+    return {"ok": bool(deployed) and not errors, "deployed": deployed, "skipped": skipped, "errors": errors, "note": note}
 
 
 def _self_check() -> None:
-    # Dry-run path discovery — must not throw.
-    found = blender_user_roots()
-    assert isinstance(found, list)
-    root = Path(__file__).resolve().parents[1]
-    assert (root / "assets" / ADDON_MODULE).is_dir()
-    assert (root / "assets" / "startup" / STARTUP_NAME).is_file()
     import tempfile
 
+    assert isinstance(blender_user_roots(), list)
+    root = Path(__file__).resolve().parents[1]
     with tempfile.TemporaryDirectory() as tmp:
-        fake = Path(tmp) / "4.2"
-        fake.mkdir()
-        result = deploy_addon(root=root, roots=[fake])
-        assert result.get("ok") is True, result
-        assert (fake / "scripts" / "addons" / ADDON_MODULE / "__init__.py").is_file()
-        assert (fake / "scripts" / "startup" / STARTUP_NAME).is_file()
+        new, old = Path(tmp) / "5.1", Path(tmp) / "4.2"
+        new.mkdir()
+        (old / "scripts" / "addons" / _LEGACY_ADDON).mkdir(parents=True)
+        result = deploy_addon(root=root, roots=[new, old])
+        assert result["ok"] is True, result
+        assert (new / "extensions" / "user_default" / ADDON_ID / "blender_manifest.toml").is_file()
+        assert (new / "scripts" / "startup" / STARTUP_NAME).is_file()
+        assert result["skipped"] == ["4.2 (needs Blender 5.1+)"], result
+        assert not (old / "scripts" / "addons" / _LEGACY_ADDON).exists()
     print("deploy_addon.py self-check ok")
 
 

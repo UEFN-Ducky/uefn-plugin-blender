@@ -1,0 +1,13 @@
+assets/mcp/ is the official Blender Lab "MCP" add-on, vendored unmodified.
+
+  Source:   https://projects.blender.org/lab/blender_mcp  (add-on, v1.0.0)
+  Docs:     https://www.blender.org/lab/mcp-server/
+  License:  GPL-3.0-or-later  (SPDX-FileCopyrightText: 2026 Blender Authors)
+  Requires: Blender 5.1+
+
+UEFN-Ducky copies this folder into Blender's user extensions
+(extensions/user_default/mcp/) and talks to its TCP socket. Nothing in this
+folder is edited by UEFN-Ducky; the rest of this plugin (backend/, skills/)
+is MIT and does not import any file from here.
+
+Full GPL-3.0 text: https://www.gnu.org/licenses/gpl-3.0.txt

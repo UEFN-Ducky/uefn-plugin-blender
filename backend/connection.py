@@ -1,150 +1,111 @@
-"""TCP client for the Blender MCP addon socket (ahujasid/blender-mcp protocol).
+"""TCP client for the official Blender Lab MCP add-on (projects.blender.org/lab/blender_mcp).
 
-Adapted from blender-mcp (MIT) — no telemetry, no uvx process.
+Wire format (see assets/mcp/mcp_to_blender_server.py):
+
+    request:  {"type": "execute", "code": "...", "strict_json": bool}\\0
+    response: {"status": "ok"|"error", "result": {...}, "stdout": "", "stderr": ""}\\0
+
+One connection per request — the add-on closes the socket after replying.
+The executed code must assign a dict to ``result``.
 """
 
 from __future__ import annotations
 
 import json
-import logging
 import socket
-from dataclasses import dataclass, field
 from typing import Any
-
-log = logging.getLogger("uefn.plugin.blender.connection")
 
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = 9876
-SOCKET_TIMEOUT_S = 180.0
+CONNECT_TIMEOUT_S = 3.0
+# Long: renders / bakes return via the add-on's deferred path (up to 1h there).
+RESPONSE_TIMEOUT_S = 600.0
+_RECV = 65536
 
 
-@dataclass
-class BlenderConnection:
-    host: str = DEFAULT_HOST
-    port: int = DEFAULT_PORT
-    sock: socket.socket | None = field(default=None, repr=False)
-
-    def connect(self) -> bool:
-        if self.sock is not None:
-            return True
-        try:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.connect((self.host, self.port))
-            return True
-        except OSError as exc:
-            log.warning("connect %s:%s failed: %s", self.host, self.port, exc)
-            self.sock = None
-            return False
-
-    def disconnect(self) -> None:
-        if self.sock is None:
-            return
-        try:
-            self.sock.close()
-        except OSError:
-            pass
-        self.sock = None
-
-    def receive_full_response(self, sock: socket.socket, buffer_size: int = 8192) -> bytes:
-        chunks: list[bytes] = []
-        sock.settimeout(SOCKET_TIMEOUT_S)
-        while True:
-            try:
-                chunk = sock.recv(buffer_size)
-            except socket.timeout as exc:
-                if chunks:
-                    break
-                raise TimeoutError("Timeout waiting for Blender response") from exc
-            if not chunk:
-                if not chunks:
-                    raise ConnectionError("Connection closed before receiving any data")
-                break
-            chunks.append(chunk)
-            data = b"".join(chunks)
-            try:
-                json.loads(data.decode("utf-8"))
-                return data
-            except json.JSONDecodeError:
-                continue
-        if not chunks:
-            raise ConnectionError("No data received")
-        data = b"".join(chunks)
-        json.loads(data.decode("utf-8"))  # raises if incomplete
-        return data
-
-    def send_command(self, command_type: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
-        if self.sock is None and not self.connect():
-            raise ConnectionError(
-                "Open Blender — addon should auto-start on "
-                f"{self.host}:{self.port}. Restart Blender once after first plugin install."
-            )
-        assert self.sock is not None
-        command = {"type": command_type, "params": params or {}}
-        try:
-            self.sock.sendall(json.dumps(command).encode("utf-8"))
-            self.sock.settimeout(SOCKET_TIMEOUT_S)
-            response_data = self.receive_full_response(self.sock)
-            response = json.loads(response_data.decode("utf-8"))
-            if response.get("status") == "error":
-                raise RuntimeError(response.get("message") or "Unknown error from Blender")
-            result = response.get("result", {})
-            return result if isinstance(result, dict) else {"result": result}
-        except (ConnectionError, BrokenPipeError, ConnectionResetError, OSError) as exc:
-            self.sock = None
-            raise ConnectionError(f"Connection to Blender lost: {exc}") from exc
-        except TimeoutError:
-            self.sock = None
-            raise
+class BlenderError(RuntimeError):
+    """The add-on ran the code and reported ``status: error``."""
 
 
-def pack_command(command_type: str, params: dict[str, Any] | None = None) -> bytes:
-    """Serialize a command frame (self-check helper)."""
-    return json.dumps({"type": command_type, "params": params or {}}).encode("utf-8")
+def pack_request(code: str, strict_json: bool) -> bytes:
+    return (json.dumps({"type": "execute", "code": code, "strict_json": strict_json}) + "\0").encode("utf-8")
 
 
 def unpack_response(data: bytes) -> dict[str, Any]:
-    """Parse a response frame (self-check helper)."""
-    return json.loads(data.decode("utf-8"))
+    text = data.split(b"\0", 1)[0].decode("utf-8")
+    obj = json.loads(text)
+    return obj if isinstance(obj, dict) else {"status": "error", "message": f"bad frame: {obj!r}"}
+
+
+def execute(
+    code: str,
+    *,
+    host: str = DEFAULT_HOST,
+    port: int = DEFAULT_PORT,
+    strict_json: bool = True,
+    timeout: float = RESPONSE_TIMEOUT_S,
+) -> dict[str, Any]:
+    """Run ``code`` in Blender. Returns the full envelope; raises on socket/exec error."""
+    try:
+        sock = socket.create_connection((host, port), timeout=CONNECT_TIMEOUT_S)
+    except OSError as exc:
+        raise ConnectionError(
+            f"Blender MCP not reachable on {host}:{port}. Open Blender 5.1+ with the "
+            "official MCP add-on running (Preferences → Add-ons → MCP → Server is running)."
+        ) from exc
+    try:
+        sock.sendall(pack_request(code, strict_json))
+        sock.settimeout(timeout)
+        buf = bytearray()
+        while b"\0" not in buf:
+            chunk = sock.recv(_RECV)
+            if not chunk:
+                break
+            buf.extend(chunk)
+    except socket.timeout as exc:
+        raise TimeoutError(f"Blender did not answer within {timeout:.0f}s") from exc
+    finally:
+        sock.close()
+    if not buf:
+        raise ConnectionError("Blender closed the connection without a response")
+    resp = unpack_response(bytes(buf))
+    if resp.get("status") != "ok":
+        raise BlenderError(str(resp.get("message") or "Unknown error from Blender"))
+    return resp
 
 
 def _self_check() -> None:
-    packed = pack_command("get_scene_info", {})
-    assert b'"type": "get_scene_info"' in packed or b'"type":"get_scene_info"' in packed
-    resp = unpack_response(b'{"status":"ok","result":{"objects":[]}}')
-    assert resp["status"] == "ok"
-    assert resp["result"]["objects"] == []
-    # Framing round-trip through a local pair of sockets.
+    import threading
+
+    assert pack_request("result = {}", True).endswith(b"\0")
+    assert unpack_response(b'{"status":"ok","result":{"a":1}}\0junk')["result"] == {"a": 1}
+
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     srv.bind(("127.0.0.1", 0))
     srv.listen(1)
     port = srv.getsockname()[1]
-    client = BlenderConnection(host="127.0.0.1", port=port)
-    assert client.connect()
-
-    import threading
+    seen: list[dict[str, Any]] = []
 
     def _serve() -> None:
         conn, _ = srv.accept()
         with conn:
             buf = b""
-            while True:
-                chunk = conn.recv(4096)
-                if not chunk:
-                    break
-                buf += chunk
-                try:
-                    json.loads(buf.decode("utf-8"))
-                    break
-                except json.JSONDecodeError:
-                    continue
-            conn.sendall(b'{"status":"ok","result":{"ping":true}}')
+            while b"\0" not in buf:
+                buf += conn.recv(4096)
+            seen.append(json.loads(buf.split(b"\0", 1)[0]))
+            conn.sendall(b'{"status":"ok","result":{"ping":true},"stdout":"hi\\n"}\0')
 
-    t = threading.Thread(target=_serve, daemon=True)
-    t.start()
-    out = client.send_command("ping")
-    assert out.get("ping") is True
-    client.disconnect()
+    threading.Thread(target=_serve, daemon=True).start()
+    out = execute("result = {'ping': True}", host="127.0.0.1", port=port)
+    assert out["result"] == {"ping": True} and out["stdout"] == "hi\n"
+    assert seen[0] == {"type": "execute", "code": "result = {'ping': True}", "strict_json": True}
     srv.close()
+
+    try:
+        execute("x", host="127.0.0.1", port=1)
+        raise AssertionError("expected ConnectionError")
+    except ConnectionError:
+        pass
     print("connection.py self-check ok")
 
 

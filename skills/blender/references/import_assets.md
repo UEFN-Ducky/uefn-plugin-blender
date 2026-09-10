@@ -47,7 +47,7 @@ if ob:
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 ```
 
-Sketchfab / random market packs: always measure a known edge (`measure` mindset — compare to 1.8 m human empty). Set `target_size` when using Sketchfab MCP download tools.
+Sketchfab / random market packs: always measure a known edge (`measure` mindset — compare to 1.8 m human empty). After import, scale so the largest dimension matches the real object (`ob.dimensions` → `ob.scale`), then apply scale.
 
 ## AI / Studio mesh cleanup
 
