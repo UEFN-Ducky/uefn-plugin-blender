@@ -40,6 +40,25 @@ def _host_port() -> tuple[str, int]:
     return host, port
 
 
+def _socket_live() -> tuple[bool, str]:
+    """Cheap TCP probe for the Connections menu — no scene fetch."""
+    import socket
+
+    host, port = _host_port()
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(0.3)
+    try:
+        sock.connect((host, port))
+        return True, f"Connected · {host}:{port}"
+    except OSError:
+        return False, f"Offline · open Blender ({host}:{port})"
+    finally:
+        try:
+            sock.close()
+        except OSError:
+            pass
+
+
 def _get_conn() -> BlenderConnection:
     global _conn
     host, port = _host_port()
@@ -75,6 +94,82 @@ def _dumps(obj: Any) -> str:
     return json.dumps(obj, indent=2, default=str)
 
 
+def _object_names_from(info: Any) -> list[str]:
+    if not isinstance(info, dict):
+        return []
+    objs = info.get("objects") or info.get("object_names") or info.get("items") or []
+    names: list[str] = []
+    if isinstance(objs, list):
+        for item in objs:
+            if isinstance(item, str) and item.strip():
+                names.append(item.strip())
+            elif isinstance(item, dict):
+                n = str(item.get("name") or "").strip()
+                if n:
+                    names.append(n)
+    return names
+
+
+def _scene_object_names() -> list[str]:
+    try:
+        names = _object_names_from(_cmd("get_scene_info"))
+        if names:
+            return names
+    except Exception:
+        pass
+    try:
+        result = _cmd("execute_code", {"code": "import bpy\nprint('\\n'.join(o.name for o in bpy.data.objects))"})
+        text = str(result.get("result") or "")
+        return [ln.strip() for ln in text.splitlines() if ln.strip()]
+    except Exception:
+        return []
+
+
+def _delete_objects_code(names: list[str]) -> str:
+    lines = ["import bpy"]
+    for name in names:
+        dumped = json.dumps(name)
+        lines.append(f"o = bpy.data.objects.get({dumped})")
+        lines.append("if o is not None:")
+        lines.append("    bpy.data.objects.remove(o, do_unlink=True)")
+    return "\n".join(lines)
+
+
+def _sidecar_for_execute(before: list[str], after: list[str]) -> dict[str, Any] | None:
+    added = [n for n in after if n not in before]
+    removed = [n for n in before if n not in after]
+    if not added and not removed:
+        return None
+    ident = added[0] if added else (removed[0] if removed else "scene")
+    if added and not removed:
+        return {
+            "program": PLUGIN_ID,
+            "kind": "object",
+            "facet": "exists",
+            "slot": f"blender://object/{ident}/exists",
+            "targets": [{"kind": "object", "id": ident, "label": ident, "path": ident}],
+            "before": {"names": before},
+            "inverse": [{"command": "blender_execute_blender_code", "params": {"code": _delete_objects_code(added)}}],
+            "created": [{"kind": "object", "id": n, "label": n, "path": n} for n in added],
+            "revertable": "auto",
+            "reason": "",
+            "summary": f"added {', '.join(added[:4])}" + ("…" if len(added) > 4 else ""),
+        }
+    return {
+        "program": PLUGIN_ID,
+        "kind": "object",
+        "facet": "exists",
+        "slot": f"blender://object/{ident}/exists",
+        "targets": [{"kind": "object", "id": ident, "label": ident, "path": ident}],
+        "before": {"names": before},
+        "inverse": [],
+        "created": [],
+        "revertable": "manual",
+        "reason": "Blender objects were removed; Ducky cannot recreate them",
+        "summary": "changed scene objects",
+    }
+
+
 def _process_bbox(original_bbox: list[float] | list[int] | None) -> list[int] | None:
     if original_bbox is None:
         return None
@@ -98,6 +193,14 @@ def register(api) -> None:
             api.log(f"addon deploy failed: {exc}")
     else:
         api.log("addon deploy skipped (MCP bridge process)")
+
+    connect = getattr(api, "connection", None)
+    if callable(connect):
+        def _connection():
+            online, detail = _socket_live()
+            return {"online": online, "detail": detail}
+
+        connect(_connection, label="Blender MCP")
 
     @api.tool(name="blender_status", intent=r"\bblender\b")
     def blender_status() -> str:
@@ -207,11 +310,21 @@ def register(api) -> None:
     @api.tool(name="blender_execute_blender_code", intent=r"\bblender\b")
     def blender_execute_blender_code(code: str) -> str:
         """Execute Python code in Blender. Prefer structured tools; break large edits into steps."""
+        before = _scene_object_names()
         try:
             result = _cmd("execute_code", {"code": code})
-            return f"Code executed successfully: {result.get('result', '')}"
         except Exception as exc:
             return f"Error executing code: {exc}"
+        after = _scene_object_names()
+        payload: dict[str, Any] = {
+            "ok": True,
+            "message": f"Code executed successfully: {result.get('result', '')}",
+            "result": result.get("result", ""),
+        }
+        sidecar = _sidecar_for_execute(before, after)
+        if sidecar:
+            payload["_ducky"] = sidecar
+        return _dumps(payload)
 
     @api.tool(name="blender_get_polyhaven_status", intent=r"\b(blender|polyhaven)\b")
     def blender_get_polyhaven_status() -> str:
