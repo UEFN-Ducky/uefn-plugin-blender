@@ -12,34 +12,20 @@ import json
 import logging
 import os
 import tempfile
+import threading
 from pathlib import Path
 from typing import Any
 
 from .connection import DEFAULT_HOST, DEFAULT_PORT, execute
-from .deploy_addon import MIN_BLENDER, blender_user_roots, deploy_addon, needs_upgrade_warning
+from .deploy_addon import MIN_BLENDER, blender_user_roots, ensure_live, needs_upgrade_warning
 
 log = logging.getLogger("uefn.plugin.blender")
 PLUGIN_ID = "blender"
 
 
-def _prefs() -> dict[str, Any]:
-    try:
-        from frontend.ui_web.plugin_host_api import prefs_plugin_get
-
-        return prefs_plugin_get(PLUGIN_ID) or {}
-    except Exception:
-        return {}
-
-
 def _host_port() -> tuple[str, int]:
-    prefs = _prefs()
-    host = str(prefs.get("host") or os.environ.get("BLENDER_HOST") or DEFAULT_HOST).strip() or DEFAULT_HOST
-    raw_port = prefs.get("port") or os.environ.get("BLENDER_PORT") or DEFAULT_PORT
-    try:
-        port = int(str(raw_port).strip())
-    except (TypeError, ValueError):
-        port = DEFAULT_PORT
-    return host, port
+    # Locked. Settings used to expose host/port and people broke the socket.
+    return DEFAULT_HOST, DEFAULT_PORT
 
 
 def _socket_live() -> tuple[bool, str]:
@@ -278,14 +264,13 @@ result = out
 
 
 def register(api) -> None:
-    # MCP bridge process: skip disk deploy (slow); use blender_redeploy_addon when needed.
-    if os.environ.get("UEFN_DUCKY_MCP_BRIDGE") != "1":
+    def _heal() -> None:
         try:
-            api.log(f"addon deploy: {deploy_addon()}")
+            api.log(f"addon heal: {ensure_live()}")
         except Exception as exc:
-            api.log(f"addon deploy failed: {exc}")
-    else:
-        api.log("addon deploy skipped (MCP bridge process)")
+            api.log(f"addon heal failed: {exc}")
+
+    threading.Thread(target=_heal, daemon=True, name="uefn-blender-heal").start()
 
     connect = getattr(api, "connection", None)
     if callable(connect):
@@ -306,6 +291,15 @@ def register(api) -> None:
             "requires_blender": f"{MIN_BLENDER}+",
         }
         try:
+            heal = ensure_live()
+            payload["heal"] = {
+                "ok": heal.get("ok"),
+                "online": heal.get("online"),
+                "relaunch": heal.get("relaunch"),
+            }
+        except Exception as exc:
+            payload["heal_error"] = str(exc)
+        try:
             resp = _execute("import bpy\nresult = {'ok': True, 'blender': bpy.app.version_string, 'file': bpy.data.filepath}")
             payload.update({"connected": True, **resp["result"], "hint": "Ready."})
         except Exception as exc:
@@ -313,11 +307,7 @@ def register(api) -> None:
                 {
                     "connected": False,
                     "detail": str(exc),
-                    "hint": (
-                        f"WARNING: this plugin needs Blender {MIN_BLENDER}+. 4.x will not connect. "
-                        "Install 5.1 from blender.org, open it once, then restart Blender. "
-                        "Preferences → Add-ons → MCP must be enabled with Allow Online Access on."
-                    ),
+                    "hint": f"Open Blender {MIN_BLENDER}+. The add-on is installed automatically.",
                 }
             )
         if warning:
@@ -330,8 +320,8 @@ def register(api) -> None:
 
     @api.tool(name="blender_redeploy_addon", intent=r"\bblender\b")
     def blender_redeploy_addon() -> str:
-        """Re-copy the official MCP add-on into Blender 5.1+ user folders (then restart Blender)."""
-        return _dumps(deploy_addon())
+        """Re-copy the official MCP add-on into Blender 5.1+ user folders and start it."""
+        return _dumps(ensure_live())
 
     @api.tool(name="blender_get_scene_info", intent=r"\bblender\b")
     def blender_get_scene_info() -> str:

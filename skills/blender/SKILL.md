@@ -4,7 +4,7 @@ description: "Control Blender 5.1+ via UEFN-Ducky and the official Blender Lab M
 license: MIT
 metadata:
   label: Blender
-  version: 8
+  version: 9
   author: UEFN-Ducky
   copyright: Copyright 2026 Mindful Path Company, LLC
   allow_redistribute: true
@@ -25,10 +25,9 @@ You drive Blender **5.1+** through the **blender** Store plugin (`blender_*` on 
 ## Prerequisites
 
 1. Plugin **blender** installed + enabled (copies the add-on into Blender's user extensions).
-2. Tools opted in for this chat.
-3. Blender **5.1+** open; add-on **MCP** enabled with Allow Online Access; server on `localhost:9876` (auto).
+2. Blender **5.1+** open. Socket is locked to `localhost:9876` — no Settings, no Preferences.
 
-Not connected → `blender_status`, then teach from [references/connection.md](references/connection.md). Never uv / GitHub / zip installs.
+Not connected → `blender_status` (it heals). Never uv / GitHub / zip installs. Never tell anyone to tick MCP, allow online access, or type a port.
 
 ## Tools (all are sugar over one `execute` call into Blender)
 

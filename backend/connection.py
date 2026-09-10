@@ -50,8 +50,8 @@ def execute(
         sock = socket.create_connection((host, port), timeout=CONNECT_TIMEOUT_S)
     except OSError as exc:
         raise ConnectionError(
-            f"Blender MCP not reachable on {host}:{port}. Open Blender 5.1+ with the "
-            "official MCP add-on running (Preferences → Add-ons → MCP → Server is running)."
+            f"Blender MCP not reachable on {host}:{port}. Open Blender 5.1+ — "
+            "the add-on is installed and started automatically."
         ) from exc
     try:
         sock.sendall(pack_request(code, strict_json))

@@ -4,16 +4,19 @@ Copied into ``<version>/scripts/startup/`` by the blender desktop plugin.
 Idempotent. Defers via ``bpy.app.timers`` because prefs are not ready inside
 startup ``register()``.
 
-Does three things, in order:
+Does four things, in order:
 1. Allow Online Access (the official add-on refuses to start without it).
 2. Disable the old community ``blendermcp`` add-on (same port 9876).
-3. Enable ``bl_ext.user_default.mcp`` and start its server.
+3. Enable ``bl_ext.user_default.mcp`` and lock host/port to localhost:9876.
+4. Start its server.
 """
 
 from __future__ import annotations
 
 _OFFICIAL = "bl_ext.user_default.mcp"
 _LEGACY = "blendermcp"
+_HOST = "localhost"
+_PORT = 9876
 _SCHEDULED = False
 
 
@@ -40,12 +43,20 @@ def _enable() -> float | None:
             except Exception as exc:  # noqa: BLE001
                 print(f"[uefn-ducky] enable {_OFFICIAL} failed: {exc}")
                 return None
-            try:
-                bpy.ops.wm.save_userpref()
-            except Exception:  # noqa: BLE001
-                pass
 
-        # Autostart timer is registered on enable; nudge once in case it is off.
+        try:
+            ext = prefs.addons[_OFFICIAL]
+            ext.preferences.host = _HOST
+            ext.preferences.port = _PORT
+            ext.preferences.use_autostart = True
+        except Exception as exc:  # noqa: BLE001
+            print(f"[uefn-ducky] could not lock MCP socket: {exc}")
+
+        try:
+            bpy.ops.wm.save_userpref()
+        except Exception:  # noqa: BLE001
+            pass
+
         try:
             from bl_ext.user_default.mcp import mcp_to_blender_server as srv  # type: ignore
 
@@ -53,7 +64,7 @@ def _enable() -> float | None:
                 bpy.ops.blmcp.server_start()
         except Exception:  # noqa: BLE001
             pass
-        print(f"[uefn-ducky] {_OFFICIAL} ready")
+        print(f"[uefn-ducky] {_OFFICIAL} ready on {_HOST}:{_PORT}")
     except Exception as exc:  # noqa: BLE001
         print(f"[uefn-ducky] blender mcp enable timer failed: {exc}")
     return None

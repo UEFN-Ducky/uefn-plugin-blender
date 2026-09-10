@@ -1,6 +1,6 @@
 # Blender
 
-**Requires Blender 5.1+.** 4.x will not connect. Control Blender for 3D modeling and export to UEFN via the official [Blender Lab MCP add-on](https://www.blender.org/lab/mcp-server/). The add-on is installed into Blender automatically — open Blender 5.1+ after enabling.
+**Requires Blender 5.1+.** 4.x will not connect. Control Blender for 3D modeling and export to UEFN via the official [Blender Lab MCP add-on](https://www.blender.org/lab/mcp-server/). The add-on is installed and started automatically on `localhost:9876` — open Blender 5.1+. There is no host/port setting.
 
 Desktop plugin for [UEFN-Ducky](https://github.com/UEFN-Ducky/UEFN-Ducky) (`blender`).
 Install or update from **Settings → Store** in the app — do not install from a zip by hand.

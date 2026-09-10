@@ -1,75 +1,13 @@
 {
   "id": "blender",
   "kind": "plugin",
-  "version": "1.0.25",
+  "version": "1.0.26",
   "label": "Blender",
-  "description": "Requires Blender 5.1+ (4.x will not connect). Control Blender for 3D modeling and export to UEFN via the official Blender MCP add-on — installed into Blender automatically.",
+  "description": "Requires Blender 5.1+ (4.x will not connect). Control Blender for 3D modeling and export to UEFN via the official Blender MCP add-on — installed and started automatically. Socket is fixed to localhost:9876.",
   "min_app_version": "1.0.0",
   "default_enabled": false,
   "secret_keys": [],
   "contributes": {
-    "settings.tabs": [
-      {
-        "id": "Blender",
-        "label": "Blender",
-        "icon": "assets/icon.png",
-        "ui": "sections"
-      }
-    ],
-    "settings.sections": [
-      {
-        "tab": "Blender",
-        "id": "requires",
-        "title": "Requires Blender 5.1+",
-        "description": "WARNING: this plugin only works with Blender 5.1 or newer. 4.x cannot run the official MCP add-on and will not connect. Install 5.1 from blender.org, open it once, then restart Blender after this plugin is enabled.",
-        "order": 1,
-        "properties": []
-      },
-      {
-        "tab": "Blender",
-        "id": "connection",
-        "title": "Connection",
-        "description": "On enable, this plugin copies the official Blender MCP add-on into your Blender 5.1+ user extensions and a startup script that enables it. Open (or restart) Blender 5.1+ — the server auto-starts on the port below.",
-        "order": 10,
-        "properties": [
-          {
-            "id": "host",
-            "type": "string",
-            "default": "localhost",
-            "label": "Host",
-            "description": "Blender MCP add-on host (default localhost)."
-          },
-          {
-            "id": "port",
-            "type": "string",
-            "default": "9876",
-            "label": "Port",
-            "description": "Blender MCP add-on port (default 9876, matches the add-on preference)."
-          }
-        ]
-      }
-    ],
-    "walkthrough": {
-      "id": "blender",
-      "title": "Blender setup",
-      "auto_start": "first_enable",
-      "settings_tab": "Blender",
-      "steps": [
-        {
-          "target": "settings.tab.blender",
-          "title": "Requires Blender 5.1+",
-          "body": "WARNING: Blender 4.x cannot run this plugin. Install Blender 5.1 or newer from blender.org, open it once, then restart it so the MCP add-on auto-starts on port 9876. No uv / GitHub install.",
-          "advance": "next",
-          "mode": "rect"
-        },
-        {
-          "target": "settings.tab.blender",
-          "title": "Talk to Blender",
-          "body": "With Blender 5.1+ open, ask the agent to inspect the scene, find the heaviest mesh, rename datablocks, or model. Tools appear under blender_*. For text/image-to-3D generation, install the meshy or 3D AI Studio Store plugin.",
-          "advance": "next"
-        }
-      ]
-    },
     "agent.tools": {
       "category": "blender",
       "intent_pattern": "\\b(blender|mesh|fbx|glb|gltf|bpy|polycount|3d\\s*model)\\b",
