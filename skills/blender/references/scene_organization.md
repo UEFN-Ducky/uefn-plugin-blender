@@ -10,7 +10,7 @@ Load this when starting a new .blend for UEFN work, restructuring a messy scene,
 | Static mesh object + its mesh data | `SM_` | `SM_Crate_A` |
 | Skeletal mesh object | `SK_` | `SK_Guard` |
 | Material | `MAT_` (alt `M_`) | `MAT_Crate_Wood` |
-| Collision shells | `UCX_<meshname>_##` (also `UBX_`/`USP_`/`UCP_`, see `lod_collision`) | `UCX_SM_Crate_A_00` |
+| Collision shells | `UCX_<meshname>_##` (also `UBX_`/`USP_`/`UCP_`, see `skill_read_subskill("lod-pipeline")` / `skill_read_subskill("collision-proxy")`) | `UCX_SM_Crate_A_00` |
 | Lights / cameras (never exported) | `LGT_` / `CAM_` | `LGT_Key` |
 | Mirrored bones / vertex groups / shape keys | `_l` / `_r` suffix for UEFN-bound rigs (`.L` / `.R` is Blender's own convention) | `hand_l` |
 
@@ -52,7 +52,7 @@ scn.unit_settings.scale_length = 1.0    # 1 BU = 1 m; the export recipes handle 
 scn.unit_settings.length_unit = 'METERS'
 ```
 
-Model at real-world size against these references: UEFN character ≈ 1.9 m tall, door ≈ 2.1 m, one building tile = 512 uu = 5.12 m. Object scale must end up `(1, 1, 1)` before export — `bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)`; full checklist in `asset_qa`.
+Model at real-world size against these references: UEFN character ≈ 1.9 m tall, door ≈ 2.1 m, one building tile = 512 uu = 5.12 m. Object scale must end up `(1, 1, 1)` before export — `bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)`; full checklist in `skill_read_subskill("qa-review")`.
 
 ## Collection structure for a UEFN project
 
@@ -121,7 +121,7 @@ for ob in bpy.data.objects:
 The export hubs (`uefn_export`, `skeletal_export`) treat a collection as the export unit — the collection name minus `COL_` is the asset name. Enforce:
 
 - Exactly one deliverable per `COL_SM_*` / `COL_SK_*` collection.
-- The mesh's own `UCX_*` shells and LOD meshes (`lod_collision`) live *with* it in the same collection — nothing else. No lights, cutters, refs, or stray empties.
+- The mesh's own `UCX_*` shells and LOD meshes (`skill_read_subskill("lod-pipeline")` / `skill_read_subskill("collision-proxy")`) live *with* it in the same collection — nothing else. No lights, cutters, refs, or stray empties.
 - Skeletal collections: one armature plus the meshes it deforms, nothing more.
 
 When an exporter operates on the "active collection", set it explicitly:
@@ -185,4 +185,39 @@ print(before, "->", counts())
 - Don't purge orphans without a save checkpoint first — purge deletes *everything* with zero users, including work you staged but haven't assigned yet.
 - Don't use `Scene Collection` as a dumping ground; unsorted work goes to `COL_WIP`.
 
-See also: `bpy_fundamentals`, `uefn_export`, `skeletal_export`, `lod_collision`, `asset_qa`, `verify_loop`.
+See also: `bpy_fundamentals`, `uefn_export`, `skeletal_export`, `skill_read_subskill("lod-pipeline")` / `skill_read_subskill("collision-proxy")`, `skill_read_subskill("qa-review")`, `verify_loop`.
+
+## View layers and large scenes
+
+| Layer | Contents |
+|-------|----------|
+| Default | Active modeling |
+| Reference | Image planes, scale refs |
+| Blockout | WIP blockout only |
+| Final | Approved geometry |
+| Export | Export-ready duplicates |
+
+## Parenting Strategy
+
+- Parent mechanical sub-parts to root empty: `SM_AssetName_Root`
+- Keep pivot at functional point (hinge, grip, floor)
+- Use constraints for mechanical relationships (see rigging skill)
+
+## Asset Browser Integration
+
+- Mark finished assets for reuse
+- Tag by category: Prop, Env, Char, Weapon
+- Include preview render in asset catalog
+
+## Large Scene Management
+
+- One collection per modular kit
+- Instance collections, don't duplicate
+- Hide blockout collections after approval
+- Use collection colors for discipline identification
+
+## Performance in Viewport
+
+- Disable subdiv viewport levels during modeling
+- Use wireframe overlay for topology review
+- Hide high-poly sculpts when working on low-poly

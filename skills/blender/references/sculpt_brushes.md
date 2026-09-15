@@ -5,7 +5,7 @@ Drive Blender's REAL sculpt brushes (Smooth, Crease Sharp, Clay, Grab…) headle
 1. **Mesh filters + masks** — deterministic, no mouse math, works every time. Covers 80% of "brush" asks (smooth this face, inflate this patch, sharpen detail).
 2. **Scripted brush strokes** — `bpy.ops.sculpt.brush_stroke` with synthesized stroke points. Full brush engine (pinch falloff, clay buildup) but view-dependent: frame the viewport first.
 
-Load after `sculpting` (remesh/multires prep). Brushes need vertex density — a stroke on an 8-vert cube does nothing. Voxel-remesh first (`sculpting`), sculpt, then `retopology`.
+Load after `skill_read_subskill("sculpting")` (remesh/multires prep). Brushes need vertex density — a stroke on an 8-vert cube does nothing. Voxel-remesh first (`skill_read_subskill("sculpting")`), sculpt, then `skill_read_subskill("retopology")`.
 
 ## Brush picker
 
@@ -156,12 +156,12 @@ Whole-mesh soften (no mask): flood-fill mask to 0, run `SMOOTH` at `strength=0.3
 
 ## Recipe — smooth, clean face from a lumpy head
 
-1. `sculpting`: voxel remesh ~5 mm (`remesh_voxel_size=0.005`) for even density.
+1. `skill_read_subskill("sculpting")`: voxel remesh ~5 mm (`remesh_voxel_size=0.005`) for even density.
 2. Mask recipe above → `SURFACE_SMOOTH` on cheeks/forehead (keeps nose/lips crisp).
 3. Detail passes: `Crease Sharp` strokes for eyelid/nostril lines, `Clay Strips` (`strength≈0.3`) for brow/cheekbone volume.
 4. Whole-mesh `SMOOTH` filter at `strength=0.2` to unify.
 5. Screenshot front/side/3-quarter (`verify_loop`) → iterate.
-6. It's still a sculpt: `retopology` (+ `face_topology` loops) before UEFN.
+6. It's still a sculpt: `skill_read_subskill("retopology")` (+ `skill_read_subskill("character-artist")` loops) before UEFN.
 
 ## Verify
 
@@ -179,4 +179,4 @@ Whole-mesh soften (no mask): flood-fill mask to 0, run `SMOOTH` at `strength=0.3
 - Don't leave dyntopo on during scripted strokes (topology changes mid-loop); use voxel remesh checkpoints.
 - Don't skip `bpy.ops.wm.save_mainfile()` before a stroke experiment.
 
-See also: `sculpting`, `organic_forms` (deterministic fallbacks), `face_topology`, `retopology`, `verify_loop`.
+See also: `skill_read_subskill("sculpting")`, `organic_forms` (deterministic fallbacks), `skill_read_subskill("character-artist")`, `skill_read_subskill("retopology")`, `verify_loop`.

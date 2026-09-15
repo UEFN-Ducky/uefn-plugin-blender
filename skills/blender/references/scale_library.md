@@ -74,4 +74,4 @@ Screenshot next to the 1.8 m reference (`verify_loop`).
 - Don't blockout a "door" at 0.3 m because the cube default looked fine.
 - Don't export to UEFN without checking bounds after import (`fbx_import_pipeline` in modeling pack).
 
-Next: `blockout` → discipline skill → `asset_qa`.
+Next: `blockout` → discipline skill → `skill_read_subskill("qa-review")`.

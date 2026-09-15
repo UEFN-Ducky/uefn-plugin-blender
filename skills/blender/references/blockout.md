@@ -191,7 +191,7 @@ A blockout is approved when ALL of these hold — only then do detail passes sta
 5. One option chosen; losing options deleted; scale applied (1.0) on every object.
 6. File saved as a checkpoint (`bpy.ops.wm.save_mainfile()`).
 
-After approval, hand off: `hard_surface` or `props` for mechanical detail, `organic_forms` for creatures/characters, `environments_modular` for kit pieces. The blockout masses become the proportion cage — detail geometry replaces them, it does not reinterpret them.
+After approval, hand off: `skill_read_subskill("hard-surface")` or `props` for mechanical detail, `organic_forms` for creatures/characters, `skill_read_subskill("environment-artist")` for kit pieces. The blockout masses become the proportion cage — detail geometry replaces them, it does not reinterpret them.
 
 ## Version notes
 
@@ -214,4 +214,4 @@ After approval, hand off: `hard_surface` or `props` for mechanical detail, `orga
 - Don't iterate on one option in place for an hour; duplicate the collection and diverge, then compare side by side.
 - Don't apply blockout booleans early — keep them live so masses stay re-sizeable.
 
-See also: `verify_loop`, `scene_organization`, `reference_match`, `hard_surface`, `organic_forms`, `props`, `environments_modular`, `uefn_export`.
+See also: `verify_loop`, `scene_organization`, `reference_match`, `skill_read_subskill("hard-surface")`, `organic_forms`, `props`, `skill_read_subskill("environment-artist")`, `uefn_export`.

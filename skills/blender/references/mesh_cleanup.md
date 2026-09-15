@@ -233,4 +233,4 @@ If one side is outright wrong, rebuild it instead: `bpy.ops.mesh.symmetrize(dire
 - Don't export with unapplied scale/rotation, ever; and never apply a negative scale without recalcing normals after.
 - Don't skip cleanup on bake targets — interior faces and inverted shells ruin AO/normal bakes.
 
-See also: `modifiers`, `uv_workflow`, `texture_bake`, `uefn_export`, `asset_qa`, `verify_loop`.
+See also: `modifiers`, `skill_read_subskill("uv-workflow")`, `texture_bake`, `uefn_export`, `skill_read_subskill("qa-review")`, `verify_loop`.

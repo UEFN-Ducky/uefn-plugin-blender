@@ -56,8 +56,8 @@ Tripo / TRELLIS / Hyper3D / Hunyuan imports are dense and messy:
 1. Rename `SM_*`, move to working collection (`scene_organization`).
 2. `mesh_cleanup` — doubles, non-manifold, normals.
 3. Decimate or remesh if unmanageable.
-4. **Deforming character?** → `retopology` (never skin raw AI mesh).
-5. Rigid prop? Mid-poly cleanup + `uv_workflow` may be enough.
+4. **Deforming character?** → `skill_read_subskill("retopology")` (never skin raw AI mesh).
+5. Rigid prop? Mid-poly cleanup + `skill_read_subskill("uv-workflow")` may be enough.
 6. Then materials / bake / export.
 
 ## Join / separate
@@ -78,4 +78,4 @@ bpy.ops.object.mode_set(mode='OBJECT')
 - Don't skin or animate a raw AI mesh.
 - Don't leave packed junk materials — rename `MAT_*`, purge orphans.
 
-Next: discipline subskill → `asset_qa` → `uefn_export` / `skeletal_export`.
+Next: discipline subskill → `skill_read_subskill("qa-review")` → `uefn_export` / `skeletal_export`.

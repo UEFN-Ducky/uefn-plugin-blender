@@ -1,6 +1,6 @@
 # Export from Blender → UEFN (static)
 
-Ship static meshes as FBX (preferred) or glTF/GLB. Rigged/animated → `skeletal_export`. Run `asset_qa` first. Via `blender_execute_blender_code`, then UEFN `import_asset`.
+Ship static meshes as FBX (preferred) or glTF/GLB. Rigged/animated → `skeletal_export`. Run `skill_read_subskill("qa-review")` first. Via `blender_execute_blender_code`, then UEFN `import_asset`.
 
 ## Prep
 
@@ -69,8 +69,8 @@ bpy.ops.export_scene.gltf(
 | Wrong orientation | Axis mismatch | forward `-Z`, up `Y` (FBX) |
 | Black / missing textures | Paths not packed / not copied | Export textures beside FBX; fix paths |
 | Faceted shading | No custom normals / smooth | Smooth + weighted normals; export tspace |
-| Exploded mesh | Modifiers not applied / GN unrealized | Apply mods; see `geometry_nodes` |
-| Bad collision | No proxy | `lod_collision` UCX boxes |
+| Exploded mesh | Modifiers not applied / GN unrealized | Apply mods; see `skill_read_subskill("geometry-nodes")` |
+| Bad collision | No proxy | `skill_read_subskill("lod-pipeline")` / `skill_read_subskill("collision-proxy")` UCX boxes |
 
 ## Don'ts
 

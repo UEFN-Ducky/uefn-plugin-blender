@@ -40,21 +40,21 @@ bm.free()
 1. Loops follow the form (muscle, panel, lip, eyelid).
 2. Joints need **ring loops** that compress/stretch (elbow, knee, finger knuckles).
 3. Don't terminate a loop into a random star on a bend.
-4. Support loops for Subsurf creases — or use Bevel weights for mid-poly (`hard_surface`).
+4. Support loops for Subsurf creases — or use Bevel weights for mid-poly (`skill_read_subskill("hard-surface")`).
 
-Characters: `face_topology`, `body_anatomy`, `hands_feet`. Creatures: `creature_organic`.
+Characters: `skill_read_subskill("character-artist")`, `skill_read_subskill("character-artist")`, `skill_read_subskill("character-artist")`. Creatures: `skill_read_subskill("creature-artist")`.
 
 ## Density
 
 - Dense only where silhouette or deform needs it; sparse on large flats.
 - Sudden density jumps → pinching under Subsurf and ugly bakes — transition gradually.
-- AI / Studio meshes: remesh or retopo — don't skin raw soup (`retopology`, `import_assets`).
+- AI / Studio meshes: remesh or retopo — don't skin raw soup (`skill_read_subskill("retopology")`, `import_assets`).
 
 ## Shading bad? Checklist
 
 1. Applied scale? (`bpy_fundamentals`)
 2. Flipped normals / mixed — Face Orientation overlay (`verify_loop`)
-3. Custom normals / Weighted Normal missing on mid-poly (`hard_surface`)
+3. Custom normals / Weighted Normal missing on mid-poly (`skill_read_subskill("hard-surface")`)
 4. Long tris across a curve
 5. N-gon on a curved surface
 6. Overlapping verts — `mesh_cleanup`
@@ -65,4 +65,4 @@ Characters: `face_topology`, `body_anatomy`, `hands_feet`. Creatures: `creature_
 - Don't put poles on knuckles and call it done.
 - Don't match "quad only" religiously on static mid-poly flats — planarity matters more.
 
-Next: discipline skill → `mesh_cleanup` → `uv_workflow`.
+Next: discipline skill → `mesh_cleanup` → `skill_read_subskill("uv-workflow")`.

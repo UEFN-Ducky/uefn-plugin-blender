@@ -1,6 +1,6 @@
 # Organic forms
 
-Soft-volume modeling WITHOUT interactive sculpting: creatures, bodies, fruit, cushions, rocks, tentacles, branches. Everything here is deterministic bpy — no brush strokes. Load when the shape is curved/lumpy/alive; for crisp mechanical shapes load `hard_surface`.
+Soft-volume modeling WITHOUT interactive sculpting: creatures, bodies, fruit, cushions, rocks, tentacles, branches. Everything here is deterministic bpy — no brush strokes. Load when the shape is curved/lumpy/alive; for crisp mechanical shapes load `skill_read_subskill("hard-surface")`.
 
 ## Technique picker
 
@@ -95,7 +95,7 @@ for i, r in enumerate([0.14, 0.11, 0.07, 0.035]):   # shoulder→wrist taper, ra
 sv[0].use_root = True                     # exactly one root per connected component
 ```
 
-Branch by adding more edges off any spine vert before `to_mesh`. When the shape is right, apply Skin+Subsurf (`bpy.ops.object.modifier_apply(modifier=...)`, object mode, object active) and continue with proportional edits. For deforming limbs the Skin output has usable ring topology, but plan joint loop placement per `body_anatomy`.
+Branch by adding more edges off any spine vert before `to_mesh`. When the shape is right, apply Skin+Subsurf (`bpy.ops.object.modifier_apply(modifier=...)`, object mode, object active) and continue with proportional edits. For deforming limbs the Skin output has usable ring topology, but plan joint loop placement per `skill_read_subskill("character-artist")`.
 
 ## Cast / Lattice / Curve deformers
 
@@ -172,20 +172,20 @@ bpy.ops.object.shade_auto_smooth(angle=1.047)   # 60°; adds "Smooth by Angle" m
 
 - Non-destructive variant: `RemeshModifier` with `mode='VOXEL'`, plus a `'SMOOTH'` or `'CORRECTIVE_SMOOTH'` modifier (`factor=0.6, iterations=10`) — keep live while iterating, apply before export.
 - Repeat remesh→smooth→proportional-pull cycles as needed; each remesh resets topology, so do it BEFORE any UVs/weights.
-- Remesh output is flow-less: fine for static props/rocks, never final topology for deforming characters — `retopology` first, and plan loops per `body_anatomy`.
+- Remesh output is flow-less: fine for static props/rocks, never final topology for deforming characters — `skill_read_subskill("retopology")` first, and plan loops per `skill_read_subskill("character-artist")`.
 
 ## Silhouette checks
 
-Organic forms live or die by silhouette. After every major pass: `blender_get_viewport_screenshot` from front, side, and 3/4 — the mass should read at thumbnail size; lumps that vanish in silhouette are wasted verts. Compare against reference per `reference_match`; full loop discipline in `verify_loop`. Use `blender_get_object_info` to watch vert counts against the static-prop budget guide in `lod_collision` (a guide, not an Epic-enforced cap); pre-export checklist in `asset_qa`.
+Organic forms live or die by silhouette. After every major pass: `blender_get_viewport_screenshot` from front, side, and 3/4 — the mass should read at thumbnail size; lumps that vanish in silhouette are wasted verts. Compare against reference per `reference_match`; full loop discipline in `verify_loop`. Use `blender_get_object_info` to watch vert counts against the static-prop budget guide in `skill_read_subskill("lod-pipeline")` / `skill_read_subskill("collision-proxy")` (a guide, not an Epic-enforced cap); pre-export checklist in `skill_read_subskill("qa-review")`.
 
 ## Escalation
 
 Escalate when deterministic tools plateau:
 
 - **Surface detail first**: a `DisplaceModifier` with a procedural `Texture` (`direction='NORMAL'`, low `strength`) fakes skin/rock micro-relief cheaply — try before sculpting.
-- **`sculpting` subskill** — Multires + mesh filters + displacement pipelines, for believable organic detail meant to be baked (`texture_bake`).
+- **`skill_read_subskill("sculpting")` subskill** — Multires + mesh filters + displacement pipelines, for believable organic detail meant to be baked (`texture_bake`).
 - **`sculpt_brushes` subskill** — real brush strokes (Crease Sharp, Clay, Smooth…) scripted via viewport-framed `brush_stroke`, plus masks + `mesh_filter` for brush-quality smoothing. Needs the framing/setup helpers there — don't hand-roll strokes outside it.
-- **AI generation** — when the lifeform is beyond parametric assembly (realistic animal, detailed monster): use the **meshy** or **studio3d** Store plugin to generate, then `import_assets` here. Generated meshes are dense and flow-less: voxel remesh + `retopology` + `uv_workflow` before UEFN.
+- **AI generation** — when the lifeform is beyond parametric assembly (realistic animal, detailed monster): use the **meshy** or **studio3d** Store plugin to generate, then `import_assets` here. Generated meshes are dense and flow-less: voxel remesh + `skill_read_subskill("retopology")` + `skill_read_subskill("uv-workflow")` before UEFN.
 
 ## Version notes
 
@@ -199,7 +199,7 @@ Escalate when deterministic tools plateau:
 - `blender_get_object_info`: vert count within budget; scale is (1,1,1) after `transform_apply`.
 - Even polygon density — no long thin triangles, no dense-patch/sparse-patch seams (zoom a screenshot on transitions).
 - Wireframe sanity after remesh: watertight, no floating shrapnel (`mesh_cleanup` if in doubt).
-- For deforming assets: joint areas have (or will get, via `retopology`) real loops.
+- For deforming assets: joint areas have (or will get, via `skill_read_subskill("retopology")`) real loops.
 
 ## Don'ts
 
@@ -209,6 +209,6 @@ Escalate when deterministic tools plateau:
 - Don't remesh after UVs, vertex groups, or shape keys exist — it destroys them; remesh early.
 - Don't put Subsurf before Skin in the stack — Skin needs the raw spine edges.
 - Don't crank Subsurf `levels` above 3 to fix a bad cage — fix the cage.
-- Don't ship remeshed/AI-generated flow-less topology as a deforming character — `retopology` first.
+- Don't ship remeshed/AI-generated flow-less topology as a deforming character — `skill_read_subskill("retopology")` first.
 
-See also: `blockout`, `modifiers`, `sculpting`, `retopology`, `body_anatomy`, `creature_organic`, `verify_loop`, `mesh_cleanup`, `asset_qa`, `uefn_export`.
+See also: `blockout`, `modifiers`, `skill_read_subskill("sculpting")`, `skill_read_subskill("retopology")`, `skill_read_subskill("character-artist")`, `skill_read_subskill("creature-artist")`, `verify_loop`, `mesh_cleanup`, `skill_read_subskill("qa-review")`, `uefn_export`.

@@ -186,4 +186,14 @@ An asset is done when, with no cherry-picked angle:
 - Don't leave review overlays (wireframe, face orientation) on for silhouette/beauty compares.
 - Don't declare done without a fresh screenshot when the user can see the viewport — they will look.
 
-See also: `reference_match`, `asset_qa`, `scene_organization`, `bpy_fundamentals`.
+## Reference-image scoring (when a photo/concept was provided)
+
+Pass threshold: ≥ 8/10 categories rated Match or Close. Max 3 compare loops.
+
+- [ ] Camera angle / subject fill matches the reference
+- [ ] Silhouette and major masses in the right places
+- [ ] Surface breakup (panels, recesses) in the same ballpark
+- [ ] Materials/color read similarly
+- [ ] No invented large forms
+
+See also: `reference_match`, `skill_read_subskill("qa-review")`, `scene_organization`, `bpy_fundamentals`.

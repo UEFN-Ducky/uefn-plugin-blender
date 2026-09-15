@@ -1,13 +1,13 @@
 # Skeletal export (Blender → UEFN)
 
-Rigged meshes, morphs, and animations via FBX. Static-only → `uefn_export`. Run `asset_qa` + weight checks first. Via `blender_execute_blender_code`.
+Rigged meshes, morphs, and animations via FBX. Static-only → `uefn_export`. Run `skill_read_subskill("qa-review")` + weight checks first. Via `blender_execute_blender_code`.
 
 ## Prep
 
 - Apply mesh scale; armature at rest pose (pose clear) for bind pose export when shipping skin.
 - Deform bones only (`use_deform`); name UE-friendly.
 - Limit weights (`skinning_weights`).
-- Actions baked if they rely on IK (`animation_actions`).
+- Actions baked if they rely on IK (`skill_read_subskill("blender-animation")`).
 - Units: meters.
 
 ```python

@@ -91,7 +91,7 @@ for e in me.edges:
         ca.data[e.index].value = 1.0       # crease = 1.0 -> fully sharp under subdiv
 ```
 
-For game assets keep levels ≤ 2 and treat Subdiv as a bake source, not export geometry — see `lod_collision`.
+For game assets keep levels ≤ 2 and treat Subdiv as a bake source, not export geometry — see `skill_read_subskill("lod-pipeline")` / `skill_read_subskill("collision-proxy")`.
 
 ## Array
 
@@ -136,7 +136,7 @@ sw.offset = 0.002                  # tiny gap prevents z-fighting
 # sw.vertex_group = "wrap_zone"    # limit influence
 ```
 
-Primary uses: retopo mesh conformed to a sculpt (`retopology`), clothing snapped over a body (`character_clothing`).
+Primary uses: retopo mesh conformed to a sculpt (`skill_read_subskill("retopology")`), clothing snapped over a body (`skill_read_subskill("character-artist")`).
 
 ## Data Transfer
 
@@ -259,4 +259,4 @@ FBX/glTF exporters apply remaining modifiers for static meshes; for skeletal mes
 - Don't Remesh after UV unwrapping or skinning — it wipes both.
 - Don't stack Weld above Mirror with clipping — it can eat the center seam before the mirror merge runs.
 
-See also: `mesh_cleanup`, `hard_surface`, `geometry_nodes`, `lod_collision`, `uefn_export`, `verify_loop`.
+See also: `mesh_cleanup`, `skill_read_subskill("hard-surface")`, `skill_read_subskill("geometry-nodes")`, `skill_read_subskill("lod-pipeline")` / `skill_read_subskill("collision-proxy")`, `uefn_export`, `verify_loop`.

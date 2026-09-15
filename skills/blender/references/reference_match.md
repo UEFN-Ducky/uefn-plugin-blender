@@ -4,12 +4,13 @@ Build to match a photo / concept. Lock camera + proportions before detail. Via `
 
 ## Workflow
 
-1. Import reference (Empty Image / background / plane).
-2. Analyze: silhouette, proportions, materials, implied scale.
-3. Rough camera match if the ref is a photo.
-4. `blockout` → discipline subskill → detail.
-5. Screenshot compare → iterate.
-6. Pass checklist → `asset_qa`.
+1. Fill `skill_read_subskill("blender", "reference_analysis_template")` **before** any mutate.
+2. Import reference (Empty Image / background / plane).
+3. Analyze: silhouette, proportions, materials, implied scale.
+4. Match camera (`CAM_*` + target empty) before micro-detail.
+5. `blockout` → specialist pack → detail.
+6. `blender_get_viewport_screenshot` compare → gap list → fix (max 3 loops).
+7. Pass checklist → `skill_read_subskill("qa-review")`.
 
 ## Load reference
 
@@ -55,4 +56,4 @@ Or a textured plane facing the camera for side-by-side modeling.
 - Don't ignore the reference and "improve" the design unless asked.
 - Don't model from a single foreshortened photo without side checks.
 
-Next: route to `hard_surface` / `organic_forms` / `face_topology` / etc. → `verify_loop`.
+Next: route to `skill_read_subskill("hard-surface")` / `organic_forms` / `skill_read_subskill("character-artist")` / etc. → `verify_loop`.
