@@ -94,11 +94,11 @@ def needs_upgrade_warning(roots: list[Path] | None = None) -> str:
         return (
             f"WARNING: Blender {', '.join(old)} found — this plugin needs Blender "
             f"{MIN_BLENDER}+. 4.x cannot run the official MCP add-on. Install 5.1 "
-            "from blender.org, open it once, then restart Blender."
+            "from blender.org, open it once — applies on next start."
         )
     return (
         f"WARNING: this plugin needs Blender {MIN_BLENDER}+. Install it from blender.org, "
-        "open it once, then restart Blender."
+        "open it once — applies on next start."
     )
 
 
