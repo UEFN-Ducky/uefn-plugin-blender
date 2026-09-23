@@ -57,9 +57,20 @@ bpy.ops.export_scene.gltf(
 
 ## Import into UEFN
 
-1. `import_asset` (or Content Browser) into the project Content folder.
+1. `import_asset` into the project. Meshes land in `/<Project>/Meshes/<Name>`, textures in `/<Project>/Textures/<Name>`, audio in `/<Project>/Audio/<Name>`. Do not pass a `/Game/Creative/...` destination — that path is collapsed on purpose.
 2. Modeling skill: `get_static_mesh_info`, `set_mesh_collision` if needed.
 3. Rebuild materials in UEFN (**materials** pack) — don't expect complex Blender graphs.
+4. Never assign a material from `/Game/Packages/**` (or any `/Game/**` path outside `/Game/Creative`). Those fail publish and the mesh renders black. Use a project material, or a `/Game/Creative` material.
+
+## Spline-ready static mesh
+
+A sidewalk, road, curb, or trim piece that must bend on a UEFN spline mesh:
+
+- Length runs along **+X**. Pivot at the start edge (`X = 0`), sitting on the ground (`Z = 0`).
+- Loop cuts along the length about every 25–50 cm so the spline can bend the piece instead of stretching one long quad.
+- Keep the original UVs and material slot names. UCX collision, named `UCX_<Mesh>`.
+- `import_asset` to `/<Project>/Meshes/<Name>`.
+- Do not assign `/Game/Packages/**` materials. Use a project material or `/Game/Creative`.
 
 ## Failure table
 
