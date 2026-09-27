@@ -358,6 +358,11 @@ def register(api) -> None:
             from mcp.server.fastmcp import Image
 
             saved = save_capture_for_agents(raw, prefix="blender_viewport")
+            if not saved.get("ok"):
+                return _dumps({
+                    "ok": False,
+                    "error": saved.get("error") or "Screenshot was not saved: no active chat.",
+                })
             payload = {
                 "ok": True,
                 "format": saved.get("format", "png"),
@@ -368,7 +373,7 @@ def register(api) -> None:
                 "media_url": saved.get("media_url"),
                 "width": result.get("width"),
                 "height": result.get("height"),
-                "hint": "media_url/capture_path are AppData preview-only. Image also returned as MCP content.",
+                "hint": "PNG is in this chat's AppData attachments folder. Image also returned as MCP content.",
             }
             text = _dumps(payload)
             project_path = str(saved.get("path") or "")
