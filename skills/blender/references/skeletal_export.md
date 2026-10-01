@@ -101,3 +101,9 @@ Morph/shape keys: include MESH in export with shape keys present; enable morph e
 - Don't use `uefn_export` static path for skinned assets.
 - Don't export Rigify junk bones without stripping.
 - Don't leave IK constraints as the only anim source without baking.
+
+## UEFN 42.30 import fix
+
+UEFN 42.30 fixed skinned-mesh import: inverse bind matrices resolve, bind poses no
+longer drift from the scene hierarchy, and multi-root skinned files import. Still
+export one armature root per character when you can.

@@ -4,7 +4,7 @@ description: "Control Blender 5.1+ via UEFN-Ducky and the official Blender Lab M
 license: MIT
 metadata:
   label: Blender
-  version: 10
+  version: 11
   author: UEFN-Ducky
   copyright: Copyright 2026 Mindful Path Company, LLC
   allow_redistribute: true
