@@ -1,2 +1,5 @@
 __pycache__/
 deploy/
+
+# Build output — never commit
+*.pyc
