@@ -1,3 +1,9 @@
+---
+description: "QA verdict template: ship, ship with notes or no-ship, budgets against target, captured angles, blockers and majors"
+metadata:
+  label: "QA Verdict Template"
+---
+
 # QA Verdict Template
 
 ```markdown

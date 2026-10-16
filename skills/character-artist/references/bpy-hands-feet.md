@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for hands and feet: proportions for a 1.9 m UEFN character, hand topology, LOD budgets, scripted fingers"
+metadata:
+  label: "bpy: hands_feet"
+---
+
 # Ducky bpy — hands_feet
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

@@ -1,3 +1,9 @@
+---
+description: "Polycount budgets for game-ready props, characters, environments, vehicles and weapons, with style modifiers, LOD and texture budgets"
+metadata:
+  label: "Polycount Budgets"
+---
+
 # Polycount Budgets
 
 Reference targets for game-ready assets. Adjust per project spec; these are AAA-informed defaults.

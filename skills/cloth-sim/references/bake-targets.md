@@ -1,3 +1,9 @@
+---
+description: "Where cloth simulations end up: bake to shape keys, Alembic or point caches, or freeze into modeled cloth for games"
+metadata:
+  label: "Cloth Bake Targets"
+---
+
 # Cloth Bake Targets
 
 | Target | When |

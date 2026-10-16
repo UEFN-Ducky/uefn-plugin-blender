@@ -1,3 +1,9 @@
+---
+description: "Mechanical rigs with constraints instead of weights: empty control hierarchy, hinges, gear-ratio drivers and export"
+metadata:
+  label: "Mechanical Rig"
+---
+
 # Mechanical Rig
 
 ## Constraint-First Approach

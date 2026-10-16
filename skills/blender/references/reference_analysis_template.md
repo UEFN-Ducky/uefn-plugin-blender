@@ -1,3 +1,9 @@
+---
+description: "Reference analysis template to fill before modeling from an image: subject, silhouette and proportions, camera, lighting and palette"
+metadata:
+  label: "Reference Analysis Template"
+---
+
 # Reference Analysis Template
 
 Copy and fill this **before any Blender MCP operations** when a reference image is provided.

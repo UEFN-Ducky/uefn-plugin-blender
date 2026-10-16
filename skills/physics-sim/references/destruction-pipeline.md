@@ -1,3 +1,9 @@
+---
+description: "Destruction pipeline: pre-fracture with cell fracture, passive until a trigger frame, breakable constraints, bake and cleanup"
+metadata:
+  label: "Destruction Pipeline"
+---
+
 # Destruction Pipeline
 
 1. Pre-fracture (cell fracture / manual islands)

@@ -1,3 +1,9 @@
+---
+description: "Cloth pins and collision: pin collars, waistbands and seams with soft falloff, simplified body colliders, and the bake path"
+metadata:
+  label: "Pins & Collision"
+---
+
 # Pins & Collision
 
 ## Pins

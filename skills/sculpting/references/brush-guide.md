@@ -1,3 +1,9 @@
+---
+description: "Sculpt brush guide: brush and stroke settings, dynamic topology detail sizes, alpha stamps and a multires level guide"
+metadata:
+  label: "Brush Guide"
+---
+
 # Brush Guide
 
 ## Sculpt Brush Settings

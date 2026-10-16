@@ -1,3 +1,9 @@
+---
+description: "Texel density: the pixels-per-meter formula, matching density across islands, hero versus background and UDIMs"
+metadata:
+  label: "Texel Density"
+---
+
 # Texel Density
 
 ## Calculation

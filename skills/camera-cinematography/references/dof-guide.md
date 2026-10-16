@@ -1,3 +1,9 @@
+---
+description: "Depth of field guide: focus on a subject empty, shallow for hero shots and deeper for environments, preview and avoid focus hunting"
+metadata:
+  label: "DoF Guide"
+---
+
 # DoF Guide
 
 - Focus object = subject empty

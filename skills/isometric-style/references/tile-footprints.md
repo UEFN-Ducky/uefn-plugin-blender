@@ -1,3 +1,9 @@
+---
+description: "Isometric tile footprints: tile sizes, pivots, heights in tile units and occlusion sorting for asset kits"
+metadata:
+  label: "Tile Footprints"
+---
+
 # Tile Footprints
 
 | Footprint | Use |

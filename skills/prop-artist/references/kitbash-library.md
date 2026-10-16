@@ -1,3 +1,9 @@
+---
+description: "Kitbash library spec: SM_KB naming by category, grid snapping, collections and export of handles, brackets, bolts, panels and pipes"
+metadata:
+  label: "Kitbash Library Spec"
+---
+
 # Kitbash Library Spec
 
 ## Naming

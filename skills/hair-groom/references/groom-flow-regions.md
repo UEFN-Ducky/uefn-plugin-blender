@@ -1,3 +1,9 @@
+---
+description: "Scalp flow regions for grooming: hairline and bangs, crown, temples, nape and facial hair, mapped before cards or particles"
+metadata:
+  label: "Scalp Flow Regions"
+---
+
 # Scalp Flow Regions
 
 Map guides by region before cards/particles:

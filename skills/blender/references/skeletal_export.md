@@ -1,3 +1,9 @@
+---
+description: "Export rigged meshes, morph targets and animations from Blender to UEFN as FBX: prep, armature and action settings, import fixes"
+metadata:
+  label: "Skeletal export (Blender → UEFN)"
+---
+
 # Skeletal export (Blender → UEFN)
 
 Rigged meshes, morphs, and animations via FBX. Static-only → `uefn_export`. Run `skill_read_subskill("qa-review")` + weight checks first. Via `blender_execute_blender_code`.

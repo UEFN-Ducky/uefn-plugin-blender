@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for cloth: modeled cloth by default, simulate then freeze, body collision, pin groups and weight painting pins"
+metadata:
+  label: "bpy: cloth"
+---
+
 # Ducky bpy — cloth
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for collision proxies: a box proxy around the bounds, duplicating bounds as a cube, naming, and what to avoid"
+metadata:
+  label: "bpy: collision proxies"
+---
+
 # Ducky bpy — collision proxies
 
 Run snippets via `blender_execute_blender_code`. Naming/recipes: this pack's other references. UEFN ship: `skill_read_subskill("blender", "uefn_export")`.

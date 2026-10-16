@@ -1,3 +1,9 @@
+---
+description: "Unity import checklist: scale against a 1 m cube, pivot and prefab origin, materials per render pipeline, LOD Group and colliders"
+metadata:
+  label: "Unity Import Checklist"
+---
+
 # Unity Import Checklist
 
 - [ ] Scale vs 1m cube

@@ -1,3 +1,9 @@
+---
+description: "Stylized NPR shader setups: cel shader, toon BSDF, outline pass, rim light node, specular control and shadow hardness"
+metadata:
+  label: "NPR Shader Setups"
+---
+
 # NPR Shader Setups
 
 ## Cel Shader (Eevee/Cycles)

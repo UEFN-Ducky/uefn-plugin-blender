@@ -1,3 +1,9 @@
+---
+description: "Color grade starting points in the Blender compositor: fix exposure first, then filmic, warm, cool and desaturated looks"
+metadata:
+  label: "Grade Presets (Starting Points)"
+---
+
 # Grade Presets (Starting Points)
 
 | Look | Moves |

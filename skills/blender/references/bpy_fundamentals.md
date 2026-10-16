@@ -1,3 +1,9 @@
+---
+description: "bpy survival kit for blender_execute_blender_code: data, context and ops, getting objects by name, selection and modes, bmesh, transforms"
+metadata:
+  label: "bpy fundamentals"
+---
+
 # bpy fundamentals
 
 The survival kit for every `blender_execute_blender_code` call: the bpy.data / bpy.context / bpy.ops mental model, selection-active-mode discipline, context overrides, the bmesh pattern, transforms, collections, checkpoints, and the exceptions that kill scripts. Load this before writing any nontrivial bpy.

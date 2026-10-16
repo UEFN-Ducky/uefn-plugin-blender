@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for game clothing: shell workflow, clearance and thickness, openings, collars, cuffs and hems, modeled folds"
+metadata:
+  label: "bpy: character_clothing"
+---
+
 # Ducky bpy — character_clothing
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

@@ -1,3 +1,9 @@
+---
+description: "Anime character proportions: head-to-body ratios, eye placement, slender limbs and simplified hands for anime-style models"
+metadata:
+  label: "Anime Proportion Notes"
+---
+
 # Anime Proportion Notes
 
 | Feature | Typical push |

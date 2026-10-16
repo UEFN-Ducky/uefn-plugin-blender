@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for hair: game hair cards, a simple card plane following hair direction, and curves hair for lookdev then baking"
+metadata:
+  label: "bpy: hair_groom"
+---
+
 # Ducky bpy — hair_groom
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

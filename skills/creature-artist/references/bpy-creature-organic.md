@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for creatures: budgets by silhouette, joint topology for non-humans, tails and tentacles, radial mouths, wing membranes"
+metadata:
+  label: "bpy: creature_organic"
+---
+
 # Ducky bpy — creature_organic
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

@@ -1,3 +1,9 @@
+---
+description: "Character body proportions: realistic 8-head and stylized 4 to 5 head systems, shoulder and hip widths, readable hands and feet"
+metadata:
+  label: "Body Proportions"
+---
+
 # Body Proportions
 
 ## Realistic (8 heads)

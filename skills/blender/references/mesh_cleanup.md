@@ -1,3 +1,9 @@
+---
+description: "Mesh cleanup before UVs, bakes, LODs or export: apply transforms, merge by distance, remove loose and non-manifold geometry, fix normals"
+metadata:
+  label: "Mesh cleanup"
+---
+
 # Mesh cleanup
 
 Load before UV unwrap, baking, LOD generation, or export — and whenever shading looks blotchy, booleans fail, or UEFN import produces holes/flipped faces. Run everything through `blender_execute_blender_code`; confirm visually with `blender_get_viewport_screenshot`.

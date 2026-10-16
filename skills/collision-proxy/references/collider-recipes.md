@@ -1,3 +1,9 @@
+---
+description: "Collider recipes: boxes, capsules, convex hulls and compound colliders for common props, slightly inset to avoid snagging"
+metadata:
+  label: "Collider Recipes"
+---
+
 # Collider Recipes
 
 | Asset | Recipe |

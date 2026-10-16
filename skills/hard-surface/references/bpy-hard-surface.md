@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for hard surface: shading strategy, boolean plus bevel workflow, cleanup after apply, Smooth by Angle and weighted normals"
+metadata:
+  label: "bpy: hard_surface"
+---
+
 # Ducky bpy — hard_surface
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

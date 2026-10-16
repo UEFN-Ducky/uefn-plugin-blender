@@ -1,3 +1,9 @@
+---
+description: "Which Blender style, world, mood and genre packs to load by engine target and production phase, and when to combine them"
+metadata:
+  label: "Skill Routing Reference"
+---
+
 # Skill Routing Reference
 
 Extended routing tables for the Blender Director.

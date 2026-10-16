@@ -1,3 +1,9 @@
+---
+description: "Boolean workflow for hard surface: solver choice, common artifacts and fixes, cutter rules, stack order and batching booleans"
+metadata:
+  label: "Boolean Workflow"
+---
+
 # Boolean Workflow
 
 ## Solver Selection

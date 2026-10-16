@@ -1,3 +1,9 @@
+---
+description: "Organize a Blender scene for UEFN: naming, units and scale, collection structure, one asset per export collection, purging orphans"
+metadata:
+  label: "Scene organization"
+---
+
 # Scene organization
 
 Load this when starting a new .blend for UEFN work, restructuring a messy scene, or preparing collections for export. Everything runs through `blender_execute_blender_code`; confirm structure with `blender_get_scene_info`.

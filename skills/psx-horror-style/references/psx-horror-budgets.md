@@ -1,3 +1,9 @@
+---
+description: "PSX horror budgets: triangle and texture limits, nearest-filter textures and fog that hides draw distance"
+metadata:
+  label: "PSX Horror Budgets"
+---
+
 # PSX Horror Budgets
 
 | Asset | Tris | Texture |

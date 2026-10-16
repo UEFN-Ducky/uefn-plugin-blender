@@ -1,3 +1,9 @@
+---
+description: "Trim sheet UVs: layout strategy, assigning trims, modeling trim geometry, variation and export notes"
+metadata:
+  label: "Trim Sheets"
+---
+
 # Trim Sheets
 
 ## Layout Strategy

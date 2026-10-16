@@ -1,3 +1,9 @@
+---
+description: "Drive Blender's real sculpt brushes from scripts: brush picker, activating brushes, scripted strokes, masks and mesh filters for smoothing"
+metadata:
+  label: "Sculpt brushes — scripted strokes & masked filters"
+---
+
 # Sculpt brushes — scripted strokes & masked filters
 
 Drive Blender's REAL sculpt brushes (Smooth, Crease Sharp, Clay, Grab…) headless. Two engines, always try in this order:

@@ -1,3 +1,9 @@
+---
+description: "Prop tiers and budgets, pivot rules for floor, handheld, hinged and wall props, and where wear goes first"
+metadata:
+  label: "Prop Tiers & Budgets"
+---
+
 # Prop Tiers & Budgets
 
 | Tier | Camera distance | Tris guide | Materials | Collision |

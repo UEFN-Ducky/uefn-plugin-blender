@@ -1,3 +1,9 @@
+---
+description: "Vehicle proportion blockout for cars, trucks, aircraft, ships, boats and mechs: wheelbase, stance, wingspan and cabin ratios"
+metadata:
+  label: "Vehicle Proportion Blockout"
+---
+
 # Vehicle Proportion Blockout
 
 ## Cars / Trucks

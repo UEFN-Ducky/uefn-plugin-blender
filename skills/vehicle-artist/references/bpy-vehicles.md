@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for vehicles and mechs: build order, blueprint reference, sub-d surfacing with creases, mid-poly bevels and weighted normals"
+metadata:
+  label: "bpy: vehicles"
+---
+
 # Ducky bpy — vehicles
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

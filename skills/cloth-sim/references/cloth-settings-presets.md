@@ -1,3 +1,9 @@
+---
+description: "Cloth simulation presets for cotton, silk, leather, denim and capes, with applied scale and 20 to 60 frames of pre-roll"
+metadata:
+  label: "Cloth Settings Presets"
+---
+
 # Cloth Settings Presets
 
 | Preset | Quality Steps | Speed | Bending | Mass | Notes |

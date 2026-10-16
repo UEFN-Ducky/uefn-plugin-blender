@@ -1,3 +1,9 @@
+---
+description: "Export static meshes from Blender to UEFN as FBX or glTF: prep, export settings, spline-ready meshes and an import failure table"
+metadata:
+  label: "Export from Blender → UEFN (static)"
+---
+
 # Export from Blender → UEFN (static)
 
 Ship static meshes as FBX (preferred) or glTF/GLB. Rigged/animated → `skeletal_export`. Run `skill_read_subskill("qa-review")` first. Via `blender_execute_blender_code`, then UEFN `import_asset`.

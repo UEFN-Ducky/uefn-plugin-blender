@@ -1,3 +1,9 @@
+---
+description: "Import FBX, glTF, OBJ, USD and AI-made meshes into Blender: fix scale and axes, clean up, join or separate, then hand off"
+metadata:
+  label: "Import assets into Blender"
+---
+
 # Import assets into Blender
 
 Bring FBX / glTF / OBJ / USD / AI meshes into Blender, fix scale/axes, clean, then route to modeling or `uefn_export`. Via `blender_execute_blender_code`.

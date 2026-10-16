@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for UVs: prep, an optional lightmap channel, Smart UV for hard surface and props, and manual seams for characters"
+metadata:
+  label: "bpy: uv_workflow"
+---
+
 # Ducky bpy — uv_workflow
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

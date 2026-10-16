@@ -1,3 +1,9 @@
+---
+description: "Stylized palette examples: heroic fantasy, cozy, sci-fi and horror palettes, and the 70-20-10 color usage rule"
+metadata:
+  label: "Palette Examples"
+---
+
 # Palette Examples
 
 ## Heroic Fantasy (Triadic)

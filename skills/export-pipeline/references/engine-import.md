@@ -1,3 +1,9 @@
+---
+description: "Importing Blender exports into Unreal Engine 5, Unity and Godot 4: mesh, normals and scale settings, and a first-import test checklist"
+metadata:
+  label: "Engine Import"
+---
+
 # Engine Import
 
 ## Unreal Engine 5

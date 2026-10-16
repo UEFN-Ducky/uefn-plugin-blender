@@ -1,3 +1,9 @@
+---
+description: "Game versus cinematic topology: what to remove for games, what cinematic characters keep, a decision matrix and optimization"
+metadata:
+  label: "Game vs Cinematic Topology"
+---
+
 # Game vs Cinematic Topology
 
 ## Game Character

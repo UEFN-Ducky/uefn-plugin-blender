@@ -1,3 +1,9 @@
+---
+description: "Match a reference photo or concept in Blender: load it, lock camera and proportions, then compare screenshots pass by pass"
+metadata:
+  label: "Reference image match"
+---
+
 # Reference image match
 
 Build to match a photo / concept. Lock camera + proportions before detail. Via `blender_execute_blender_code` + `blender_get_viewport_screenshot`.

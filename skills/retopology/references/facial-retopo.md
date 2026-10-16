@@ -1,3 +1,9 @@
+---
+description: "Facial retopology for animation: loop targets, pole strategy, eye socket, mouth corner and nose, and edge density"
+metadata:
+  label: "Facial Retopology"
+---
+
 # Facial Retopology
 
 ## Loop Targets

@@ -1,3 +1,9 @@
+---
+description: "Blender modifier stack playbook via bpy: order, Bevel, Boolean, Mirror, Subdivision with creases, Array, Solidify and Shrinkwrap"
+metadata:
+  label: "Modifiers"
+---
+
 # Modifiers
 
 Load when adding, configuring, ordering, or applying modifiers via bpy: the 4.x modifier stack playbook (Bevel, Boolean, Mirror, Subdiv, Array, Solidify, Shrinkwrap, Data Transfer, Weld, Triangulate, Decimate, Remesh, Lattice/SimpleDeform, Smooth by Angle) plus apply-before-export rules.

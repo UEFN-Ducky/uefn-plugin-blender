@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for animation: keyframing poses, actions and Blender 4.4+ action slots, assigning actions and baking for export"
+metadata:
+  label: "bpy: animation_actions"
+---
+
 # Ducky bpy — animation_actions
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

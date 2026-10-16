@@ -1,3 +1,9 @@
+---
+description: "Flying creature anatomy: bird, bat and dragon wings as modified forelimbs, attachment, folded versus spread, membranes and rigging"
+metadata:
+  label: "Flying Creatures"
+---
+
 # Flying Creatures
 
 ## Wing Anatomy

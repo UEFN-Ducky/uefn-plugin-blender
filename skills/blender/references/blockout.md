@@ -1,3 +1,9 @@
+---
+description: "Blender blockout: real-world scale reference rig, massing with primitives, rough boolean openings and grey silhouette checks before detail"
+metadata:
+  label: "Blockout"
+---
+
 # Blockout
 
 Proportion-first massing pass: nail real-world scale and silhouette with primitives before any detail work. Load this before modeling anything bigger than a handheld prop, and always for buildings, vehicles, and characters.

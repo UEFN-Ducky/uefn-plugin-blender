@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for a lookdev studio: repeatable key, fill and rim lights, cleaning old helpers, and optional HDRI world"
+metadata:
+  label: "bpy: lookdev_studio"
+---
+
 # Ducky bpy — lookdev_studio
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

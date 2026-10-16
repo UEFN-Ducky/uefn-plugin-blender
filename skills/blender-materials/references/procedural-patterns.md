@@ -1,3 +1,9 @@
+---
+description: "Procedural material patterns in Blender: edge wear, dirt accumulation, rust overlay, moss and growth, water staining, panel variation"
+metadata:
+  label: "Procedural Material Patterns"
+---
+
 # Procedural Material Patterns
 
 ## Edge Wear

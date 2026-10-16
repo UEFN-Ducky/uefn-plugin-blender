@@ -1,3 +1,9 @@
+---
+description: "Vehicle LOD targets: triangle budgets per LOD and baking panel lines into normal maps for lower LODs"
+metadata:
+  label: "Vehicle LOD Targets"
+---
+
 # Vehicle LOD Targets
 
 | LOD | Goal |

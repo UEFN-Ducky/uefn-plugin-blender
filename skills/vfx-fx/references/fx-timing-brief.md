@@ -1,3 +1,9 @@
+---
+description: "FX timing brief template: start, anticipation, peak and dissipate frames, camera and silhouette read for an effect"
+metadata:
+  label: "FX Timing Brief Template"
+---
+
 # FX Timing Brief Template
 
 ```

@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for modular environments: module rules, pivot at the floor corner, kit variants and dressing for walls, floors and ceilings"
+metadata:
+  label: "bpy: environments_modular"
+---
+
 # Ducky bpy — environments_modular
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

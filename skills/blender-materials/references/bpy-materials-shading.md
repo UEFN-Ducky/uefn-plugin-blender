@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for materials: create and assign Principled BSDF, image textures for base, roughness and normal, ORM channel splits"
+metadata:
+  label: "bpy: materials_shading"
+---
+
 # Ducky bpy — materials_shading
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

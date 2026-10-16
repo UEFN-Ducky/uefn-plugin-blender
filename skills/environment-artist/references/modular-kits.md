@@ -1,3 +1,9 @@
+---
+description: "Modular kit design: minimum viable kit, snap points on the grid, trim sheet layout, variation without unique geometry, kit validation"
+metadata:
+  label: "Modular Kit Design"
+---
+
 # Modular Kit Design
 
 ## Minimum Viable Kit

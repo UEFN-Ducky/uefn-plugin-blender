@@ -1,3 +1,9 @@
+---
+description: "Walk cycle breakdown by frame: contact, down, passing and up poses, arm and hip motion, and cycle length"
+metadata:
+  label: "Walk Cycle Breakdown"
+---
+
 # Walk Cycle Breakdown
 
 ## Contact (Frame 0/12)

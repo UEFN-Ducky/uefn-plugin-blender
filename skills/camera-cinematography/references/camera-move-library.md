@@ -1,3 +1,9 @@
+---
+description: "Camera move library for Blender shots: named camera and target empties, dolly, pan, crane and orbit moves"
+metadata:
+  label: "Camera Move Library"
+---
+
 # Camera Move Library
 
 | Move | Emotion | Tip |

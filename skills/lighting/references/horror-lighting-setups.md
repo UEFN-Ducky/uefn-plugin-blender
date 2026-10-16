@@ -1,3 +1,9 @@
+---
+description: "Horror lighting setups with values: fluorescent corridor, bare bulb room, TV glow, emergency exit, moonlight window and flicker animation"
+metadata:
+  label: "Horror Lighting Setups"
+---
+
 # Horror Lighting Setups
 
 ## Fluorescent Corridor

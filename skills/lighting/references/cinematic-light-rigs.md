@@ -1,3 +1,9 @@
+---
+description: "Cinematic light rigs with values: three-point studio, product hero shot, golden hour environment, turntable preview and render settings"
+metadata:
+  label: "Cinematic Light Rigs"
+---
+
 # Cinematic Light Rigs
 
 ## Three-Point Studio

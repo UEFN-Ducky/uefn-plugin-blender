@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for sculpting: when to sculpt, Dyntopo versus Multires, adding multires levels and organic massing"
+metadata:
+  label: "bpy: sculpting"
+---
+
 # Ducky bpy — sculpting
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

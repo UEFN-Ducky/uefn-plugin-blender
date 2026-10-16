@@ -1,3 +1,9 @@
+---
+description: "Horror level layouts: corridor types, lit to dark room flow, blind corners and vertical compression before reveals"
+metadata:
+  label: "Horror Layouts"
+---
+
 # Horror Layouts
 
 ## Corridor Types

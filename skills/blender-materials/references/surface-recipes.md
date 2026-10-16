@@ -1,3 +1,9 @@
+---
+description: "Principled BSDF starting points for worn painted metal, weathered concrete, oiled wood, cotton fabric and standard glass"
+metadata:
+  label: "Surface Material Recipes"
+---
+
 # Surface Material Recipes
 
 Quick Principled BSDF starting points. Adjust per reference.

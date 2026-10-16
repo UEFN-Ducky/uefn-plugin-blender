@@ -1,3 +1,9 @@
+---
+description: "Topology fundamentals: quads versus tris and n-gons, poles, edge flow, density, and a checklist for bad shading or deformation"
+metadata:
+  label: "Topology fundamentals"
+---
+
 # Topology fundamentals
 
 Why meshes shade badly, deform wrong, or bake garbage — before discipline skills.

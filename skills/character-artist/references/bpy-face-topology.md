@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for animation-ready face topology: required loops, poles, quad-only budgets and a ring-out build order with mirror"
+metadata:
+  label: "bpy: face_topology"
+---
+
 # Ducky bpy — face_topology
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

@@ -1,3 +1,9 @@
+---
+description: "Humanoid game rig: minimum bone hierarchy, IK setup, twist bones, weight paint order, minimal facial bones and export"
+metadata:
+  label: "Humanoid Rig"
+---
+
 # Humanoid Rig
 
 ## Required Bones (Minimum Game)

@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for texture baking: which maps to bake, high-to-low selection, image targets and an optional cage mesh"
+metadata:
+  label: "bpy: texture_bake"
+---
+
 # Ducky bpy — texture_bake
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

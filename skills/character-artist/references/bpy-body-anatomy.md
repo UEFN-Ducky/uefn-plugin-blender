@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for body anatomy: heads-tall proportions, landmark-driven loops, elbow and knee topology, shoulder and hip flow, torso density"
+metadata:
+  label: "bpy: body_anatomy"
+---
+
 # Ducky bpy — body_anatomy
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

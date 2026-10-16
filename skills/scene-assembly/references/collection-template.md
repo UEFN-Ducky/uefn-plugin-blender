@@ -1,3 +1,9 @@
+---
+description: "Scene collection template: layout, modular geometry, set dressing, vegetation, lights, cameras, FX, collision, reference and trash"
+metadata:
+  label: "Scene Collection Template"
+---
+
 # Scene Collection Template
 
 ```

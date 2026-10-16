@@ -1,3 +1,9 @@
+---
+description: "Greeble patterns: a reusable instanced library, surface-aligned scatter rules and collection structure for panels and detail"
+metadata:
+  label: "Greeble Patterns"
+---
+
 # Greeble Patterns
 
 ## Reusable Greeble Library

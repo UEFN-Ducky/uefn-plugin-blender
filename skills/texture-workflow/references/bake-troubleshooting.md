@@ -1,3 +1,9 @@
+---
+description: "Texture bake troubleshooting: normal map artifacts, AO issues, cage setup, ray distance, margin and a test workflow"
+metadata:
+  label: "Bake Troubleshooting"
+---
+
 # Bake Troubleshooting
 
 ## Normal Map Artifacts

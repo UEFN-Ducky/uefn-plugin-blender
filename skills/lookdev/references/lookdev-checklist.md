@@ -1,3 +1,9 @@
+---
+description: "Lookdev checklist: greyscale values, believable roughness, edge highlights, controlled emissive and reference match"
+metadata:
+  label: "Lookdev Checklist"
+---
+
 # Lookdev Checklist
 
 - [ ] Greyscale values read

@@ -1,3 +1,9 @@
+---
+description: "Analog horror props: 80s and 90s tech, institutional and uncanny domestic objects, low-poly modeling rules and placement"
+metadata:
+  label: "Analog Props (Horror)"
+---
+
 # Analog Props (Horror)
 
 Props that signal psychological horror through familiarity and decay.

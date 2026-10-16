@@ -1,3 +1,9 @@
+---
+description: "Simulation bake checklist: applied scale, simplified colliders, trigger frame, baked cache, stable playback and render from cache"
+metadata:
+  label: "Sim Bake Checklist"
+---
+
 # Sim Bake Checklist
 
 - [ ] Scale applied

@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for Geometry Nodes: a minimal modifier and node group, assigning existing groups, Blender 4 interface sockets"
+metadata:
+  label: "bpy: geometry_nodes"
+---
+
 # Ducky bpy — geometry_nodes
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

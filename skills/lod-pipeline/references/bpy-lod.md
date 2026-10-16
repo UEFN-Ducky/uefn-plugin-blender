@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for LODs and collision: static mesh budgets, generating LOD chains and simple collision proxies"
+metadata:
+  label: "bpy: LOD generation"
+---
+
 # Ducky bpy — LOD generation
 
 Run snippets via `blender_execute_blender_code`. Budgets/process: this pack's other references.

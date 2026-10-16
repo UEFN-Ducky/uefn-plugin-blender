@@ -1,3 +1,9 @@
+---
+description: "Facial topology for animation: eye, mouth, nose and ear loops, expression requirements and where to put poles"
+metadata:
+  label: "Facial Topology"
+---
+
 # Facial Topology
 
 ## Eye Region

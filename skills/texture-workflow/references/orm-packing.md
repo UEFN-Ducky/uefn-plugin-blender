@@ -1,3 +1,9 @@
+---
+description: "ORM packing: occlusion, roughness and metallic in one texture for Unreal and Unity, compositing the channels and naming"
+metadata:
+  label: "ORM Packing"
+---
+
 # ORM Packing
 
 Pack Occlusion, Roughness, Metallic into single texture for engine efficiency.

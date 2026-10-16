@@ -1,3 +1,9 @@
+---
+description: "PS1 aesthetic in Blender: flat shading, no anti-aliasing, low resolution, geometry, texture and color rules, modern PS1-style games"
+metadata:
+  label: "PS1 Aesthetic"
+---
+
 # PS1 Aesthetic
 
 ## Visual Characteristics

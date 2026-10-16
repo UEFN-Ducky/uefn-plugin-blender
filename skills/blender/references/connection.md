@@ -1,3 +1,9 @@
+---
+description: "The official Blender MCP add-on connection: how UEFN Ducky installs it, the wire contract of blender_* tools, and diagnosing a dead link"
+metadata:
+  label: "Blender connection — official Blender Lab MCP add-on"
+---
+
 # Blender connection — official Blender Lab MCP add-on
 
 UEFN-Ducky ships the **official** Blender MCP add-on (blender.org/lab/mcp-server, Blender **5.1+**) and copies it into Blender's user extensions on plugin load. Ducky itself is the MCP server and the LLM client — there is **no** `uvx blender-mcp`, no second MCP server, no community `blendermcp` add-on.

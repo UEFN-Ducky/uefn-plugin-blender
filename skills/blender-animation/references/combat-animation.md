@@ -1,3 +1,9 @@
+---
+description: "Combat animation timing: attack phases, hit reactions, combo timing, root motion, readable silhouettes and game export"
+metadata:
+  label: "Combat Animation Timing"
+---
+
 # Combat Animation Timing
 
 ## Attack Phases

@@ -1,3 +1,9 @@
+---
+description: "Render passes: essential Cycles passes, a basic compositing stack, Cryptomatte, multilayer EXR, game versus portfolio, denoising"
+metadata:
+  label: "Render Passes"
+---
+
 # Render Passes
 
 ## Essential Passes (Cycles)

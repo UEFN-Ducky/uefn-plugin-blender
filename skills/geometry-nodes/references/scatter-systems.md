@@ -1,3 +1,9 @@
+---
+description: "Geometry Nodes scatter systems for rocks, grass and debris: density, scale and rotation ranges, culling and a performance cap"
+metadata:
+  label: "Scatter Systems"
+---
+
 # Scatter Systems
 
 ## Rock Scatter

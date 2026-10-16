@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for retopology: shrinkwrap targets, live editing, QuadriFlow remesh for rigid props and rocks, the full pipeline"
+metadata:
+  label: "bpy: retopology"
+---
+
 # Ducky bpy — retopology
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

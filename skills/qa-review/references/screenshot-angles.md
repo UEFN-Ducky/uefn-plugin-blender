@@ -1,3 +1,9 @@
+---
+description: "Required QA screenshot angles: hero three-quarter, opposite or profile, lit beauty, wireframe and reference compare"
+metadata:
+  label: "Required Screenshot Angles"
+---
+
 # Required Screenshot Angles
 
 1. Hero 3/4

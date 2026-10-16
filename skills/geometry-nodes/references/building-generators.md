@@ -1,3 +1,9 @@
+---
+description: "Geometry Nodes building generator: parametric footprint and floors, window cuts by index, roof variants, output structure and performance"
+metadata:
+  label: "Building Generators"
+---
+
 # Building Generators
 
 ## Parametric Inputs

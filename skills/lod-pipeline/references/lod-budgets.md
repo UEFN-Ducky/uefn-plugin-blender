@@ -1,3 +1,9 @@
+---
+description: "LOD budget table: triangle counts per LOD level and asset type, protecting the silhouette and deleting interiors early"
+metadata:
+  label: "LOD Budget Table"
+---
+
 # LOD Budget Table
 
 | Asset | LOD0 | LOD1 | LOD2 | LOD3 |

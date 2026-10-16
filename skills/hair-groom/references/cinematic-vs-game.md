@@ -1,3 +1,9 @@
+---
+description: "Cinematic versus game hair: curves and particle grooms for renders, hair cards with atlases and LODs for real-time games"
+metadata:
+  label: "Cinematic vs Game Hair"
+---
+
 # Cinematic vs Game Hair
 
 | | Game cards | Cinematic curves/particles |

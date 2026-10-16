@@ -1,3 +1,9 @@
+---
+description: "bpy asset QA before export: a checklist, a runnable audit script, purging orphan meshes and materials, and what not to do"
+metadata:
+  label: "bpy: asset_qa"
+---
+
 # Ducky bpy — asset_qa
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

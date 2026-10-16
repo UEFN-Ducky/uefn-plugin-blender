@@ -1,3 +1,9 @@
+---
+description: "Lens choice and shot composition checklist: lead room, headroom, horizon, depth planes and no edge tangents"
+metadata:
+  label: "Lens & Composition"
+---
+
 # Lens & Composition
 
 | Intent | Lens | Notes |

@@ -1,3 +1,9 @@
+---
+description: "Screenshot verify loop for every modeling session: when to capture the viewport, shading modes, camera angles, turntables and overlays"
+metadata:
+  label: "Verify loop"
+---
+
 # Verify loop
 
 Screenshot-compare discipline for every modeling session: when to call `blender_get_viewport_screenshot`, how to rig the viewport via bpy so screenshots actually carry information, and what "done" means. Load this once per session and apply it throughout.

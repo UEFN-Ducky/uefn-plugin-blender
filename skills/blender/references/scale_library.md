@@ -1,3 +1,9 @@
+---
+description: "Real-world sizes in meters for people, doors, props, vehicles and environments in Blender, and the times-100 step into UEFN centimeters"
+metadata:
+  label: "Scale library"
+---
+
 # Scale library
 
 Real-world sizes in **meters** (Blender scene units). UEFN uses **cm** (1 uu = 1 cm)

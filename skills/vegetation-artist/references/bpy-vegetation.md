@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for vegetation: game-friendly trees and plants, trunk plus leaf cards and the ground origin"
+metadata:
+  label: "bpy: vegetation"
+---
+
 # Ducky bpy — vegetation
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

@@ -1,3 +1,9 @@
+---
+description: "Linking and library overrides: link shared assets, override only what must change, and keep instances light"
+metadata:
+  label: "Linking & Overrides"
+---
+
 # Linking & Overrides
 
 | Method | Use |

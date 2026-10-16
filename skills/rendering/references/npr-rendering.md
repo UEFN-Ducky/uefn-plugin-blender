@@ -1,3 +1,9 @@
+---
+description: "Non-photoreal rendering: toon shader with Shader to RGB, outline methods, inverted hull, shader rim light and Eevee NPR settings"
+metadata:
+  label: "NPR Rendering"
+---
+
 # NPR Rendering
 
 ## Toon Shader (Shader to RGB)

@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for skinning: parent with automatic weights, an explicit Armature modifier, limiting influences and transferring weights"
+metadata:
+  label: "bpy: skinning_weights"
+---
+
 # Ducky bpy — skinning_weights
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

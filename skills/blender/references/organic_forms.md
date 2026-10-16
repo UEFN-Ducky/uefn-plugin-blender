@@ -1,3 +1,9 @@
+---
+description: "Organic forms without interactive sculpting: subdivision massing, proportional editing, Skin modifier limbs, deformers, remesh and smooth"
+metadata:
+  label: "Organic forms"
+---
+
 # Organic forms
 
 Soft-volume modeling WITHOUT interactive sculpting: creatures, bodies, fruit, cushions, rocks, tentacles, branches. Everything here is deterministic bpy — no brush strokes. Load when the shape is curved/lumpy/alive; for crisp mechanical shapes load `skill_read_subskill("hard-surface")`.

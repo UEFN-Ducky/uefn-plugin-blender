@@ -1,3 +1,9 @@
+---
+description: "Hair card atlas layout: vertical strands, clump variants, padding, channel packing and the card mesh"
+metadata:
+  label: "Hair Card Atlas"
+---
+
 # Hair Card Atlas
 
 ## Layout

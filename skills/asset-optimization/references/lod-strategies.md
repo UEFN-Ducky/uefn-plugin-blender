@@ -1,3 +1,9 @@
+---
+description: "LOD strategies for game assets: decimate settings per level, keeping the silhouette, and billboard or octahedral impostors"
+metadata:
+  label: "LOD Strategies"
+---
+
 # LOD Strategies
 
 ## Decimate Settings

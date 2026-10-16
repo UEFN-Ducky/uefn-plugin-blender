@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for armatures: create bones, edit bones, Blender 4 bone collections and hiding helper bones in pose mode"
+metadata:
+  label: "bpy: rigging_armatures"
+---
+
 # Ducky bpy — rigging_armatures
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

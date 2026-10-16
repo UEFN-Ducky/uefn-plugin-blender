@@ -1,3 +1,9 @@
+---
+description: "PBR values grounded in photos: metal, dielectric, glass and skin subsurface settings, and albedo rules"
+metadata:
+  label: "PBR Value Reference"
+---
+
 # PBR Value Reference
 
 Photographically grounded values. Adjust per reference photo.

@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for game props: real dimensions first, LOD0 budgets, mid-poly with weighted normals, smooth shading and sharp edges"
+metadata:
+  label: "bpy: props"
+---
+
 # Ducky bpy — props
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.

@@ -1,3 +1,9 @@
+---
+description: "Trim sheets for modular kits and hard surface: shared atlas UVs, few materials, high reuse and mid-poly with trims"
+metadata:
+  label: "Trim sheets"
+---
+
 # Trim sheets
 
 Shared atlas / trim UVs for modular env and hard-surface — few materials, high

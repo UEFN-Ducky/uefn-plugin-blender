@@ -1,3 +1,9 @@
+---
+description: "Photogrammetry scan cleanup: import checklist, common issues, retopology, decimating bake sources, albedo extraction, LODs"
+metadata:
+  label: "Photogrammetry Scan Cleanup"
+---
+
 # Photogrammetry Scan Cleanup
 
 ## Import Checklist

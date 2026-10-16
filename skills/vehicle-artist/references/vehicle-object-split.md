@@ -1,3 +1,9 @@
+---
+description: "Vehicle object split: body, wheels, doors and turrets as separate objects, and collision from convex body pieces and wheel capsules"
+metadata:
+  label: "Vehicle Object Split"
+---
+
 # Vehicle Object Split
 
 | Object | Animate? | LOD keep until |

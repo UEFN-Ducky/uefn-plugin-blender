@@ -1,3 +1,9 @@
+---
+description: "Environment composition: foreground to background layers, leading lines, rule of thirds, value hierarchy, scale cues and negative space"
+metadata:
+  label: "Environment Composition"
+---
+
 # Environment Composition
 
 ## Layer Structure

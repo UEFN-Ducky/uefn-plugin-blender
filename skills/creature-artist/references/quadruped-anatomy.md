@@ -1,3 +1,9 @@
+---
+description: "Quadruped anatomy: skeleton landmarks, predator versus prey mass, proportions by animal type, surface flow, rigging and poly zones"
+metadata:
+  label: "Quadruped Anatomy"
+---
+
 # Quadruped Anatomy
 
 ## Skeleton Landmarks

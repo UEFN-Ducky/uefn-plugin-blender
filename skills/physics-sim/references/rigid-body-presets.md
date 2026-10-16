@@ -1,3 +1,9 @@
+---
+description: "Rigid body presets for common materials and objects: mass, friction and bounce, with applied scale and passive floors and walls"
+metadata:
+  label: "Rigid Body Presets"
+---
+
 # Rigid Body Presets
 
 | Case | Shape | Mass | Friction | Bounce |

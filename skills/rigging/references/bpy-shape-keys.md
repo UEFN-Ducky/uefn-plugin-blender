@@ -1,3 +1,9 @@
+---
+description: "bpy recipes for shape keys: the basis key, expression keys, editing key shapes and morph targets for export"
+metadata:
+  label: "bpy: shape_keys"
+---
+
 # Ducky bpy — shape_keys
 
 Run snippets via `blender_execute_blender_code`. Art-direction lives in this pack's SKILL.md; this file is the bpy recipe.
