@@ -297,14 +297,48 @@ def _terminate(pid: int) -> None:
     os.kill(pid, 15)
 
 
+def installed_blender_exe(bases: list[Path] | None = None) -> str:
+    """The newest installed Blender >= MIN_BLENDER (``Blender Foundation/Blender 5.2/blender.exe``)."""
+    if bases is None:
+        bases = [
+            Path(os.environ[key]) / "Blender Foundation"
+            for key in ("ProgramFiles", "ProgramW6432", "ProgramFiles(x86)", "LOCALAPPDATA")
+            if os.environ.get(key)
+        ]
+        if os.environ.get("LOCALAPPDATA"):
+            bases.append(Path(os.environ["LOCALAPPDATA"]) / "Programs" / "Blender Foundation")
+    found: list[tuple[tuple[int, int], str]] = []
+    for base in bases:
+        try:
+            children = list(base.iterdir())
+        except OSError:
+            continue
+        for child in children:
+            exe = child / "blender.exe"
+            ver = child.name.rsplit(" ", 1)[-1]
+            if exe.is_file() and _version_ok(Path(ver)):
+                major, minor = (int(x) for x in ver.split(".")[:2])
+                found.append(((major, minor), str(exe)))
+    return max(found)[1] if found else ""
+
+
 def relaunch_plain_gui_blender() -> dict[str, Any]:
-    """Restart untitled Blender GUIs so the startup script can bind :9876.
+    """Restart untitled Blender GUIs so the startup script can bind :9876, or start one when
+    no Blender runs at all (Oct 17 2026: after a PC restart an agent asked for a model and
+    could only report "Blender is not open").
 
     Saved .blend / --background / --python sessions are left alone (unsaved edits).
     """
-    procs = [p for p in list_blender_processes() if is_plain_gui_launch(str(p.get("cmd") or ""))]
+    running = list_blender_processes()
+    procs = [p for p in running if is_plain_gui_launch(str(p.get("cmd") or ""))]
     if not procs:
-        return {"relaunched": False, "reason": "no plain Blender GUI"}
+        if running:
+            return {"relaunched": False, "reason": "Blender is open with a file; open a new window there"}
+        exe = installed_blender_exe()
+        if not exe:
+            return {"relaunched": False, "reason": f"no Blender {MIN_BLENDER}+ installed"}
+        subprocess.Popen([exe], close_fds=True)
+        return {"relaunched": True, "started": True, "exe": exe}
     exe = str(procs[0].get("exe") or "").strip()
     if not exe:
         return {"relaunched": False, "reason": "no blender.exe path"}
@@ -403,10 +437,11 @@ def ensure_live(*, root: Path | None = None, roots: list[Path] | None = None) ->
     if not online:
         if _try_heal_lock():
             relaunch = relaunch_plain_gui_blender()
-            online = wait_port(timeout=15.0 if relaunch.get("relaunched") else 8.0)
+            # A cold start loads Blender and its add-ons before :9876 opens.
+            online = wait_port(timeout=40.0 if relaunch.get("started") else 15.0 if relaunch.get("relaunched") else 8.0)
         else:
             relaunch = {"relaunched": False, "reason": "heal already in progress"}
-            online = wait_port(timeout=12.0)
+            online = wait_port(timeout=40.0)
     deployed["online"] = online
     deployed["relaunch"] = relaunch
     return deployed

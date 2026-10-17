@@ -65,6 +65,37 @@ def test_second_deploy_is_unchanged() -> None:
         assert str(ver) in (second.get("unchanged") or []), second
 
 
+def test_the_newest_installed_blender_is_found() -> None:
+    import tempfile
+
+    from backend.deploy_addon import installed_blender_exe
+
+    with tempfile.TemporaryDirectory() as tmp:
+        base = Path(tmp) / "Blender Foundation"
+        for name in ("Blender 4.5", "Blender 5.1", "Blender 5.2", "Blender 5.3"):
+            (base / name).mkdir(parents=True)
+            if name != "Blender 5.3":
+                (base / name / "blender.exe").write_text("", encoding="utf-8")
+        assert installed_blender_exe([base]) == str(base / "Blender 5.2" / "blender.exe")
+        assert installed_blender_exe([Path(tmp) / "nothing"]) == ""
+
+
+def test_no_blender_running_starts_one(monkeypatch) -> None:
+    from backend import deploy_addon as da
+
+    started: list[list[str]] = []
+    monkeypatch.setattr(da, "list_blender_processes", lambda: [])
+    monkeypatch.setattr(da, "installed_blender_exe", lambda: "C:/B/Blender 5.2/blender.exe")
+    monkeypatch.setattr(da.subprocess, "Popen", lambda cmd, **kw: started.append(cmd))
+    out = da.relaunch_plain_gui_blender()
+    assert out["started"] is True and started == [["C:/B/Blender 5.2/blender.exe"]]
+
+    monkeypatch.setattr(da, "list_blender_processes", lambda: [{"pid": 1, "cmd": '"C:/B/blender.exe" C:/isle.blend'}])
+    started.clear()
+    out = da.relaunch_plain_gui_blender()
+    assert out["relaunched"] is False and started == []
+
+
 if __name__ == "__main__":
     test_host_port_are_locked()
     test_plugin_json_has_no_host_port_settings()
