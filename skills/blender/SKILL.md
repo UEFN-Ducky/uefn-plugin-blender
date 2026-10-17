@@ -47,6 +47,7 @@ Not connected → `blender_status` (it heals). Never uv / GitHub / zip installs.
 - **Inspect, then mutate.** First call reads (`bpy.data.*` → `result`), second call changes. Never guess object names — read them.
 - **One named object per mutating call.** Primitive add, rename to `SM_*`/`SK_*`, material, modifier, and join are separate calls (save `.blend` before destructive ops). Never a whole chair/prop in one script — the ledger records one revertable row per call; Revert deletes what that call added.
 - Renders / bakes may take minutes; wait for the response, never re-issue.
+- **Save before export (HARD).** Save the `.blend` with `bpy.ops.wm.save_as_mainfile(filepath=..., copy=True)` first, then export FBX/GLB in a separate call. Never write a new scene with `bpy.data.libraries.write` (Blender 5.2 crashes in it and the unsaved model is lost). If a call says Blender crashed, rebuild from the last saved `.blend`.
 
 ## Core loop (every asset)
 

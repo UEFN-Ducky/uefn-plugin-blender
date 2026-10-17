@@ -247,7 +247,8 @@ def _win_blender_procs() -> list[dict[str, Any]]:
             "Hidden",
             "-Command",
             "Get-CimInstance Win32_Process -Filter \"Name='blender.exe'\" "
-            "| Select-Object ProcessId,ExecutablePath,CommandLine | ConvertTo-Json -Compress",
+            "| Select-Object ProcessId,ExecutablePath,CommandLine,"
+            "@{n='Age';e={[int]((Get-Date) - $_.CreationDate).TotalSeconds}} | ConvertTo-Json -Compress",
         ],
         capture_output=True,
         text=True,
@@ -271,6 +272,7 @@ def _win_blender_procs() -> list[dict[str, Any]]:
                 "pid": pid,
                 "exe": str(row.get("ExecutablePath") or ""),
                 "cmd": str(row.get("CommandLine") or ""),
+                "age": float(row.get("Age") or 0),
             }
         )
     return out
@@ -285,7 +287,26 @@ def list_blender_processes() -> list[dict[str, Any]]:
     return []
 
 
-def _terminate(pid: int) -> None:
+def _pid_alive(pid: int) -> bool:
+    if sys.platform == "win32":
+        r = subprocess.run(
+            ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            **_win_no_window_kwargs(),
+        )
+        return str(pid) in (r.stdout or "")
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def _terminate(pid: int, grace: float = 5.0) -> None:
+    """Close Blender politely, then force it. A crashed Blender ignores the polite close
+    (Oct 17 2026: it stayed alive holding the add-on's port, so every restart stayed offline)."""
     if sys.platform == "win32":
         subprocess.run(
             ["taskkill", "/PID", str(pid)],
@@ -293,8 +314,25 @@ def _terminate(pid: int) -> None:
             timeout=10,
             **_win_no_window_kwargs(),
         )
-        return
-    os.kill(pid, 15)
+    else:
+        os.kill(pid, 15)
+    deadline = time.time() + grace
+    while time.time() < deadline:
+        if not _pid_alive(pid):
+            return
+        time.sleep(0.5)
+    if sys.platform == "win32":
+        subprocess.run(
+            ["taskkill", "/PID", str(pid), "/F", "/T"],
+            capture_output=True,
+            timeout=10,
+            **_win_no_window_kwargs(),
+        )
+    else:
+        os.kill(pid, 9)
+
+
+STARTING_S = 90.0
 
 
 def installed_blender_exe(bases: list[Path] | None = None) -> str:
@@ -331,6 +369,10 @@ def relaunch_plain_gui_blender() -> dict[str, Any]:
     """
     running = list_blender_processes()
     procs = [p for p in running if is_plain_gui_launch(str(p.get("cmd") or ""))]
+    # A Blender that started moments ago is still loading its add-ons: restarting it again
+    # (Oct 17 2026: each status call killed the one the last call had just started) never ends.
+    if any(float(p.get("age") or 0) < STARTING_S for p in procs):
+        return {"relaunched": False, "starting": True, "reason": "Blender is still starting"}
     if not procs:
         if running:
             return {"relaunched": False, "reason": "Blender is open with a file; open a new window there"}
@@ -438,7 +480,7 @@ def ensure_live(*, root: Path | None = None, roots: list[Path] | None = None) ->
         if _try_heal_lock():
             relaunch = relaunch_plain_gui_blender()
             # A cold start loads Blender and its add-ons before :9876 opens.
-            online = wait_port(timeout=40.0 if relaunch.get("started") else 15.0 if relaunch.get("relaunched") else 8.0)
+            online = wait_port(timeout=40.0 if relaunch.get("relaunched") or relaunch.get("starting") else 8.0)
         else:
             relaunch = {"relaunched": False, "reason": "heal already in progress"}
             online = wait_port(timeout=40.0)

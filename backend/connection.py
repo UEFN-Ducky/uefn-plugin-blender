@@ -12,7 +12,10 @@ The executed code must assign a dict to ``result``.
 from __future__ import annotations
 
 import json
+import os
 import socket
+import tempfile
+import time
 from typing import Any
 
 DEFAULT_HOST = "localhost"
@@ -21,6 +24,8 @@ CONNECT_TIMEOUT_S = 3.0
 # Long: renders / bakes return via the add-on's deferred path (up to 1h there).
 RESPONSE_TIMEOUT_S = 600.0
 _RECV = 65536
+# How often a long wait looks for Blender's crash report.
+_CRASH_POLL_S = 5.0
 
 
 class BlenderError(RuntimeError):
@@ -35,6 +40,22 @@ def unpack_response(data: bytes) -> dict[str, Any]:
     text = data.split(b"\0", 1)[0].decode("utf-8")
     obj = json.loads(text)
     return obj if isinstance(obj, dict) else {"status": "error", "message": f"bad frame: {obj!r}"}
+
+
+def crash_report_since(started: float, path: str = "") -> str:
+    """The top of ``blender.crash.txt`` when Blender wrote it after ``started``, else ""."""
+    path = path or os.path.join(tempfile.gettempdir(), "blender.crash.txt")
+    try:
+        if os.path.getmtime(path) < started:
+            return ""
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            text = fh.read()
+    except OSError:
+        return ""
+    lines = [ln.strip() for ln in text.splitlines()]
+    code = next((ln for ln in lines if ln.startswith("ExceptionCode")), "")
+    frames = [ln.split(":", 2)[-1].strip() for ln in lines if ln.startswith("blender.exe") and "::" in ln][:3]
+    return " / ".join(x for x in [code, *frames] if x) or "see blender.crash.txt"
 
 
 def execute(
@@ -53,17 +74,31 @@ def execute(
             f"Blender MCP not reachable on {host}:{port}. Open Blender 5.1+ — "
             "the add-on is installed and started automatically."
         ) from exc
+    started = time.time()
     try:
         sock.sendall(pack_request(code, strict_json))
-        sock.settimeout(timeout)
+        sock.settimeout(min(timeout, _CRASH_POLL_S))
         buf = bytearray()
         while b"\0" not in buf:
-            chunk = sock.recv(_RECV)
+            try:
+                chunk = sock.recv(_RECV)
+            except socket.timeout as exc:
+                # Oct 17 2026: Blender crashed inside the call and the agent waited the full
+                # 600 s for an answer that could never come.
+                crash = crash_report_since(started)
+                if crash:
+                    raise ConnectionError(
+                        f"Blender crashed while running this code ({crash}). Anything not saved in a "
+                        ".blend is gone; Ducky restarts Blender on the next Blender call. Save with "
+                        "bpy.ops.wm.save_as_mainfile(filepath=..., copy=True) before exporting, and "
+                        "never write a new scene with bpy.data.libraries.write."
+                    ) from exc
+                if time.time() - started >= timeout:
+                    raise TimeoutError(f"Blender did not answer within {timeout:.0f}s") from exc
+                continue
             if not chunk:
                 break
             buf.extend(chunk)
-    except socket.timeout as exc:
-        raise TimeoutError(f"Blender did not answer within {timeout:.0f}s") from exc
     finally:
         sock.close()
     if not buf:
