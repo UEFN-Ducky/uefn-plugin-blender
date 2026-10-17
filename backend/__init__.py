@@ -341,7 +341,9 @@ def register(api) -> None:
             return f"Error getting object info: {exc}"
 
     @api.tool(name="blender_get_viewport_screenshot", intent=r"\bblender\b")
-    def blender_get_viewport_screenshot(max_size: int = 1000) -> str:
+    # Any, not str: it returns [text, Image] on success, and a str annotation made the tool's
+    # output check refuse every screenshot that worked (Oct 17 2026).
+    def blender_get_viewport_screenshot(max_size: int = 1000) -> Any:
         """Capture the Blender 3D viewport. Returns a short JSON path payload plus the image — never base64."""
         temp_path = os.path.join(tempfile.gettempdir(), f"blender_screenshot_{os.getpid()}.png")
         try:
