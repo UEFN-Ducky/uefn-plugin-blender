@@ -266,7 +266,8 @@ result = out
 def register(api) -> None:
     def _heal() -> None:
         try:
-            api.log(f"addon heal: {ensure_live()}")
+            # Deploy only: Ducky starting never opens or restarts Blender (blender_status does).
+            api.log(f"addon heal: {ensure_live(start=False)}")
         except Exception as exc:
             api.log(f"addon heal failed: {exc}")
 

@@ -96,6 +96,29 @@ def test_no_blender_running_starts_one(monkeypatch) -> None:
     assert out["relaunched"] is False and started == []
 
 
+def test_ducky_starting_never_opens_or_restarts_blender(monkeypatch) -> None:
+    """Oct 18 2026: every Ducky launch opened Blender (the startup heal started one)."""
+    import inspect
+
+    import backend
+    from backend import deploy_addon as da
+
+    started: list[list[str]] = []
+    monkeypatch.setattr(da, "deploy_addon", lambda **kw: {"ok": True})
+    monkeypatch.setattr(da, "port_open", lambda *a, **kw: False)
+    monkeypatch.setattr(da, "list_blender_processes", lambda: [])
+    monkeypatch.setattr(da, "installed_blender_exe", lambda: "C:/B/Blender 5.2/blender.exe")
+    monkeypatch.setattr(da.subprocess, "Popen", lambda cmd, **kw: started.append(cmd))
+    monkeypatch.setattr(da, "_terminate", lambda pid, grace=5.0: started.append(["kill", str(pid)]))
+    out = da.ensure_live(start=False)
+    assert out["online"] is False and out["relaunch"] is None and started == []
+    # An untitled Blender without the add-on is left alone at start-up too.
+    monkeypatch.setattr(da, "list_blender_processes", lambda: [{"pid": 7, "cmd": '"C:/B/blender.exe"', "age": 999}])
+    assert da.ensure_live(start=False)["relaunch"] is None and started == []
+    # The startup hook asks for a deploy only.
+    assert "ensure_live(start=False)" in inspect.getsource(backend.register)
+
+
 if __name__ == "__main__":
     test_host_port_are_locked()
     test_plugin_json_has_no_host_port_settings()

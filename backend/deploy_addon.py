@@ -471,12 +471,16 @@ def _try_heal_lock(timeout: float = 20.0) -> bool:
         return True
 
 
-def ensure_live(*, root: Path | None = None, roots: list[Path] | None = None) -> dict[str, Any]:
-    """Deploy if stale, then relaunch an untitled Blender GUI when :9876 is down."""
+def ensure_live(*, root: Path | None = None, roots: list[Path] | None = None, start: bool = True) -> dict[str, Any]:
+    """Deploy if stale, then relaunch an untitled Blender GUI when :9876 is down.
+
+    ``start=False`` (Ducky starting up): deploy only. Blender is never opened or restarted
+    then; Oct 18 2026 every Ducky launch opened Blender. An agent asking for Blender
+    (``blender_status``) still opens it."""
     deployed = deploy_addon(root=root, roots=roots)
     online = port_open()
     relaunch: dict[str, Any] | None = None
-    if not online:
+    if not online and start:
         if _try_heal_lock():
             relaunch = relaunch_plain_gui_blender()
             # A cold start loads Blender and its add-ons before :9876 opens.
