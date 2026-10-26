@@ -3,7 +3,7 @@
   "kind": "plugin",
   "version": "1.0.38",
   "label": "Blender",
-  "description": "Requires Blender 5.1+ (4.x will not connect). Control Blender for 3D modeling and export to UEFN via the official Blender MCP add-on \u2014 installed and started automatically. Socket is fixed to localhost:9876.",
+  "description": "Requires Blender 5.1+ (4.x will not connect). Control Blender for 3D modeling and export to UEFN via the official Blender MCP add-on — installed and started automatically. Socket is fixed to localhost:9876.",
   "min_app_version": "1.2.357",
   "default_enabled": false,
   "data_sharing": false,
@@ -19,6 +19,601 @@
         "blender_get_viewport_screenshot",
         "blender_get_python_api_docs"
       ]
+    },
+    "automations": {
+    "templates": [
+      {
+        "id": "blender-character",
+        "label": "Blender: Character",
+        "description": "One prompt (\"stylized villager, low poly\") makes a rigged, animated NPC: spec, concept sheet you approve, a model built and Rigify-rigged in Blender (cloud rig if Blender fails twice), gear, then into the island as an NPC definition. Needs Blender open.",
+        "icon": "🧍",
+        "category": "Characters",
+        "kind": "bundle",
+        "root": "Blender Character",
+        "folders": ["Functions"],
+        "workflows": [
+          {
+            "key": "character",
+            "name": "Character",
+            "description": "Main: prompt in, rigged NPC in UEFN out.",
+            "folder": "",
+            "graph": {
+              "nodes": [
+                {"id": "s", "type": "start.chat", "x": 0, "y": 0, "config": {}},
+                {"id": "spec", "type": "workflow.call", "label": "Spec", "x": 300, "y": 0, "config": {"workflow_id": "@spec", "args": {"prompt": "{{prompt}}"}}},
+                {"id": "sheet", "type": "workflow.call", "label": "Concept sheet", "x": 600, "y": 0, "config": {"workflow_id": "@sheet", "args": {"spec": "{{spec}}", "prompts": "{{prompts}}"}}},
+                {"id": "make", "type": "workflow.call", "label": "Make 3D", "x": 900, "y": 0, "config": {"workflow_id": "@make3d", "args": {"spec": "{{spec}}", "prompts": "{{prompts}}", "views": "{{views}}"}}},
+                {"id": "rig", "type": "workflow.call", "label": "Rig", "x": 1200, "y": 0, "config": {"workflow_id": "@rig", "args": {"mesh": "{{mesh}}", "body": "{{spec.body}}", "height_m": "{{spec.height_m}}", "animations": "{{spec.animations}}"}}},
+                {"id": "gear", "type": "workflow.call", "label": "Gear", "x": 1500, "y": 0, "config": {"workflow_id": "@gear", "args": {"mesh": "{{mesh}}", "gear": "{{spec.gear}}"}}},
+                {"id": "ship", "type": "workflow.call", "label": "Ship to UEFN", "x": 1800, "y": 0, "config": {"workflow_id": "@ship", "args": {"spec": "{{spec}}", "meshes": "{{mesh}}"}}},
+                {"id": "f", "type": "pipeline.finish", "x": 2100, "y": 0, "config": {"message": "{{spec.name}} is in UEFN."}}
+              ],
+              "edges": [
+                {"source": "s", "target": "spec", "kind": "main"},
+                {"source": "spec", "target": "sheet", "kind": "main"},
+                {"source": "sheet", "target": "make", "kind": "main"},
+                {"source": "make", "target": "rig", "kind": "main"},
+                {"source": "rig", "target": "gear", "kind": "main"},
+                {"source": "gear", "target": "ship", "kind": "main"},
+                {"source": "ship", "target": "f", "kind": "main"}
+              ]
+            }
+          },
+          {
+            "key": "spec",
+            "name": "Spec",
+            "description": "A prompt becomes the character spec (name, body, style, palette, height, gear, animations, role, island) and the three concept-sheet prompts. Returns spec, prompts and run_title.",
+            "folder": "",
+            "graph": {
+              "nodes": [
+                {"id": "in", "type": "flow.input", "x": 0, "y": 0, "label": "Prompt", "config": {"inputs": [{"name": "prompt", "type": "text", "default": "zombie for Roguelike"}]}},
+                {"id": "ask", "type": "llm.extract", "x": 300, "y": 0, "label": "Write the spec", "config": {
+                  "names": ["name", "body", "style", "palette", "height_m", "gear", "animations", "npc_role", "island"],
+                  "system": "The text asks for a game character. Fill: name = short Title Case name (Grey Wolf); body = exactly humanoid (two legs, two arms) or quadruped (four legs); style = art style, default stylized game-ready; palette = the 3 main colors in words; height_m = realistic height in meters as a number; gear = list of up to 3 held or worn items as strings ([] for none); animations = list of animation names, idle first, walk second, then up to 3 of run, attack, bite, hurt; npc_role = one word (enemy, ally, villager, boss); island = the island or project the request names (after for or in), else null."}},
+                {"id": "fr", "type": "text.template", "x": 600, "y": 0, "label": "Front prompt", "config": {
+                  "names": ["name", "style", "body", "palette", "gear"],
+                  "template": "Character concept art of {{name}}, a {{style}} {{body}} character. Color palette: {{palette}}. Gear: {{gear}}. Full body, front view, standing in a relaxed A-pose with arms (or front legs) slightly away from the body, all limbs and feet visible, one single character centered, plain white background, flat even lighting, no cast shadow, no text."}},
+                {"id": "sd", "type": "input.text", "x": 600, "y": 160, "label": "Side prompt", "config": {"value": "The exact same character, same design, colors, gear and proportions, now in a left side view, same pose, full body, plain white background, no cast shadow, no text."}},
+                {"id": "bk", "type": "input.text", "x": 600, "y": 320, "label": "Back prompt", "config": {"value": "The exact same character, same design, colors, gear and proportions, now seen from directly behind, same pose, full body, plain white background, no cast shadow, no text."}},
+                {"id": "pl", "type": "list.make", "x": 900, "y": 0, "label": "Prompts", "config": {"names": ["front", "side", "back"]}},
+                {"id": "ret", "type": "flow.output", "x": 1200, "y": 0, "label": "Return", "config": {"outputs": [{"name": "spec", "type": "json"}, {"name": "prompts", "type": "json"}, {"name": "run_title", "type": "text"}]}}
+              ],
+              "edges": [
+                {"source": "in", "target": "ret", "kind": "main"},
+                {"source": "in", "target": "ask", "kind": "data", "source_pin": "prompt", "target_pin": "text"},
+                {"source": "ask", "target": "fr", "kind": "data", "source_pin": "name", "target_pin": "name"},
+                {"source": "ask", "target": "fr", "kind": "data", "source_pin": "style", "target_pin": "style"},
+                {"source": "ask", "target": "fr", "kind": "data", "source_pin": "body", "target_pin": "body"},
+                {"source": "ask", "target": "fr", "kind": "data", "source_pin": "palette", "target_pin": "palette"},
+                {"source": "ask", "target": "fr", "kind": "data", "source_pin": "gear", "target_pin": "gear"},
+                {"source": "fr", "target": "pl", "kind": "data", "source_pin": "text", "target_pin": "front"},
+                {"source": "sd", "target": "pl", "kind": "data", "source_pin": "text", "target_pin": "side"},
+                {"source": "bk", "target": "pl", "kind": "data", "source_pin": "text", "target_pin": "back"},
+                {"source": "ask", "target": "ret", "kind": "data", "source_pin": "data", "target_pin": "spec"},
+                {"source": "pl", "target": "ret", "kind": "data", "source_pin": "list", "target_pin": "prompts"},
+                {"source": "ask", "target": "ret", "kind": "data", "source_pin": "name", "target_pin": "run_title"}
+              ]
+            }
+          },
+          {
+            "key": "sheet",
+            "name": "Concept sheet",
+            "description": "Front, side and back views of the character (a picture and two edited views on a plain background), checked by a vision model up to 3 times, then shown for you to approve. Returns views.",
+            "folder": "",
+            "graph": {
+              "nodes": [
+                {"id": "in", "type": "flow.input", "x": 0, "y": 0, "label": "Spec and prompts", "config": {"inputs": [{"name": "spec", "type": "json"}, {"name": "prompts", "type": "json"}]}},
+                {"id": "pf", "type": "logic.expression", "x": 300, "y": -200, "label": "Front prompt", "config": {"names": ["p"], "expression": "p[0]"}},
+                {"id": "ps", "type": "logic.expression", "x": 300, "y": 0, "label": "Side prompt", "config": {"names": ["p"], "expression": "p[1]"}},
+                {"id": "pb", "type": "logic.expression", "x": 300, "y": 200, "label": "Back prompt", "config": {"names": ["p"], "expression": "p[2]"}},
+                {"id": "sn", "type": "logic.expression", "x": 300, "y": 400, "label": "Name", "config": {"names": ["spec"], "expression": "spec.name"}},
+                {"id": "gen", "type": "image.generate", "x": 600, "y": -200, "label": "Front view", "config": {"spend": true}},
+                {"id": "sd", "type": "image.edit", "x": 600, "y": 0, "label": "Side view", "config": {"spend": true}},
+                {"id": "bk", "type": "image.edit", "x": 600, "y": 200, "label": "Back view", "config": {"spend": true}},
+                {"id": "vw", "type": "list.make", "x": 1200, "y": 0, "label": "Views", "config": {"names": ["front", "side", "back"]}},
+                {"id": "vx", "type": "logic.expression", "x": 1350, "y": 0, "label": "Views as pictures", "config": {"names": ["l"], "expression": "l"}},
+                {"id": "vq", "type": "input.text", "x": 1200, "y": 200, "label": "Check question", "config": {"value": "These are the front, side and back views of one game character on a plain background. Answer PASS only if all three show the same character (same design, colors, gear), each is a full body with nothing cut off, and each is a clean single figure. Otherwise answer FAIL and say in one sentence what is wrong."}},
+                {"id": "vis", "type": "llm.vision", "x": 1500, "y": 0, "label": "Vision check", "config": {}},
+                {"id": "ok", "type": "logic.expression", "x": 1800, "y": 0, "label": "Check passed", "config": {"names": ["a"], "expression": "contains(upper(a), 'PASS') && !contains(upper(a), 'FAIL')"}},
+                {"id": "msg", "type": "text.template", "x": 1800, "y": 200, "label": "Question", "config": {"names": ["name", "verdict"], "template": "Concept sheet for {{name}} (front, side, back). Automatic check: {{verdict}}\n\nUse this goes on to 3D and rigging (these cost credits). Try again makes a new sheet. Stop ends the run."}},
+                {"id": "approve", "type": "flow.repeat", "x": 300, "y": 600, "label": "Until you approve", "config": {"max": 6}},
+                {"id": "try", "type": "flow.repeat", "x": 600, "y": 600, "label": "Make and check (3 tries)", "config": {"max": 3}},
+                {"id": "pick", "type": "flow.choose", "x": 900, "y": 600, "label": "Approve the sheet", "config": {"title": "Concept sheet", "options": "Use this, Try again, Stop"}},
+                {"id": "okc", "type": "logic.expression", "x": 1200, "y": 600, "label": "You approved", "config": {"names": ["c"], "expression": "c == 'use'"}},
+                {"id": "gate", "type": "logic.if", "x": 600, "y": 800, "label": "Approved?", "config": {"expression": "passed"}},
+                {"id": "ret", "type": "flow.output", "x": 900, "y": 800, "label": "Return", "config": {"outputs": [{"name": "views", "type": "images"}]}},
+                {"id": "miss", "type": "notify.message", "x": 900, "y": 960, "label": "Not approved", "config": {"inputs": {"message": "Concept sheet: not approved after 6 sheets, so nothing was made in 3D."}}}
+              ],
+              "edges": [
+                {"source": "in", "target": "approve", "kind": "main"},
+                {"source": "approve", "target": "try", "kind": "each"},
+                {"source": "try", "target": "pick", "kind": "done"},
+                {"source": "approve", "target": "gate", "kind": "done"},
+                {"source": "gate", "target": "ret", "kind": "true"},
+                {"source": "gate", "target": "miss", "kind": "false"},
+                {"source": "okc", "target": "approve", "kind": "data", "source_pin": "result", "target_pin": "until"},
+                {"source": "ok", "target": "try", "kind": "data", "source_pin": "result", "target_pin": "until"},
+                {"source": "in", "target": "pf", "kind": "data", "source_pin": "prompts", "target_pin": "p"},
+                {"source": "in", "target": "ps", "kind": "data", "source_pin": "prompts", "target_pin": "p"},
+                {"source": "in", "target": "pb", "kind": "data", "source_pin": "prompts", "target_pin": "p"},
+                {"source": "in", "target": "sn", "kind": "data", "source_pin": "spec", "target_pin": "spec"},
+                {"source": "pf", "target": "gen", "kind": "data", "source_pin": "result", "target_pin": "prompt"},
+                {"source": "gen", "target": "sd", "kind": "data", "source_pin": "image", "target_pin": "image"},
+                {"source": "ps", "target": "sd", "kind": "data", "source_pin": "result", "target_pin": "prompt"},
+                {"source": "gen", "target": "bk", "kind": "data", "source_pin": "image", "target_pin": "image"},
+                {"source": "pb", "target": "bk", "kind": "data", "source_pin": "result", "target_pin": "prompt"},
+                {"source": "gen", "target": "vw", "kind": "data", "source_pin": "image", "target_pin": "front"},
+                {"source": "sd", "target": "vw", "kind": "data", "source_pin": "image", "target_pin": "side"},
+                {"source": "bk", "target": "vw", "kind": "data", "source_pin": "image", "target_pin": "back"},
+                {"source": "vw", "target": "vx", "kind": "data", "source_pin": "list", "target_pin": "l"},
+                {"source": "vx", "target": "vis", "kind": "data", "source_pin": "result", "target_pin": "image"},
+                {"source": "vq", "target": "vis", "kind": "data", "source_pin": "text", "target_pin": "prompt"},
+                {"source": "vis", "target": "ok", "kind": "data", "source_pin": "text", "target_pin": "a"},
+                {"source": "sn", "target": "msg", "kind": "data", "source_pin": "result", "target_pin": "name"},
+                {"source": "vis", "target": "msg", "kind": "data", "source_pin": "text", "target_pin": "verdict"},
+                {"source": "vx", "target": "pick", "kind": "data", "source_pin": "result", "target_pin": "images"},
+                {"source": "msg", "target": "pick", "kind": "data", "source_pin": "text", "target_pin": "message"},
+                {"source": "pick", "target": "okc", "kind": "data", "source_pin": "choice", "target_pin": "c"},
+                {"source": "vx", "target": "ret", "kind": "data", "source_pin": "result", "target_pin": "views"}
+              ]
+            }
+          },
+          {
+            "key": "make3d",
+            "name": "Make 3D",
+            "description": "A Blender Artist ducky models the character in Blender at real scale (origin at the feet); a front render is compared with the concept, up to 3 tries.",
+            "folder": "Functions",
+            "graph": {
+              "nodes": [
+                {"id": "i", "type": "flow.input", "x": 0, "y": 0, "config": {"inputs": [{"name": "spec", "type": "json"}, {"name": "prompts", "type": "json"}, {"name": "views", "type": "json"}]}},
+                {"id": "fr", "type": "logic.expression", "x": 300, "y": -240, "label": "Front view", "config": {"names": ["views"], "expression": "views[0]"}},
+                {"id": "cp", "type": "logic.expression", "x": 300, "y": -120, "label": "Front prompt", "config": {"names": ["prompts"], "expression": "prompts[0]"}},
+                {"id": "rep", "type": "flow.repeat", "label": "Up to 3 tries", "x": 300, "y": 0, "config": {"max": 3}},
+                {"id": "a", "type": "pipeline.agent", "label": "Model in Blender", "x": 600, "y": -240, "config": {"ducky": "blender-artist", "timeout_sec": 1800, "prompt": "Model this game character in Blender through the Blender MCP: {{nodes.cp.result}}\nBody: {{spec.body}}. Real-world height {{spec.height_m}} m (1 Blender unit = 1 m). Origin at the feet, character facing -Y in an A-pose, arms away from the body, hands and feet separated.\nGame budget: one mesh, 8k to 15k triangles, clean quads where it bends (shoulders, elbows, hips, knees), one material with a flat vertex-color or simple base-color look matching the palette, UVs unwrapped. Apply all transforms. Use the concept picture at {{nodes.fr.result}} as the front reference.\nFix this from the last try, if any (blank on the first): {{nodes.vis.text}}\nLeave the finished character selected in the scene; do not rig it."}},
+                {"id": "exp", "type": "blender.export", "label": "Export GLB", "x": 600, "y": 0, "config": {}},
+                {"id": "ren", "type": "blender.render", "label": "Front render", "x": 900, "y": 0, "config": {"inputs": {"size": 768}, "transparent": true}},
+                {"id": "ref", "type": "list.make", "x": 1200, "y": 0, "config": {"names": ["concept", "render"]}},
+                {"id": "vis", "type": "llm.vision", "label": "Compare with the concept", "x": 1200, "y": 240, "config": {"inputs": {"prompt": "Picture 1 is the concept, picture 2 is the Blender render. Answer yes or no first, then one line why: same character, same proportions, outfit and colors, no missing limbs, no floating or merged parts?"}}},
+                {"id": "ok", "type": "logic.compare", "x": 1500, "y": 240, "config": {"op": "contains", "inputs": {"b": "yes"}}},
+                {"id": "br", "type": "flow.branch", "x": 600, "y": 400, "config": {"mode": "data", "field": "passed", "equals": "true"}},
+                {"id": "o", "type": "flow.output", "x": 900, "y": 400, "config": {"outputs": [{"name": "mesh", "value": "{{nodes.exp.mesh}}"}]}},
+                {"id": "fail", "type": "pipeline.finish", "x": 900, "y": 560, "config": {"message": "Make 3D: the Blender model didn't match the concept after 3 tries. Last note: {{nodes.vis.text}}"}}
+              ],
+              "edges": [
+                {"source": "i", "target": "rep", "kind": "main"},
+                {"source": "rep", "target": "a", "kind": "each"},
+                {"source": "rep", "target": "br", "kind": "done"},
+                {"source": "br", "target": "o", "kind": "true"},
+                {"source": "br", "target": "fail", "kind": "false"},
+                {"source": "i", "target": "fr", "kind": "data", "source_pin": "views", "target_pin": "views"},
+                {"source": "i", "target": "cp", "kind": "data", "source_pin": "prompts", "target_pin": "prompts"},
+                {"source": "fr", "target": "ref", "kind": "data", "source_pin": "result", "target_pin": "concept"},
+                {"source": "exp", "target": "ren", "kind": "data", "source_pin": "mesh", "target_pin": "mesh"},
+                {"source": "ren", "target": "ref", "kind": "data", "source_pin": "image", "target_pin": "render"},
+                {"source": "ref", "target": "vis", "kind": "data", "source_pin": "list", "target_pin": "image"},
+                {"source": "vis", "target": "ok", "kind": "data", "source_pin": "text", "target_pin": "a"},
+                {"source": "ok", "target": "rep", "kind": "data", "source_pin": "result", "target_pin": "until"}
+              ]
+            }
+          },
+          {
+            "key": "rig",
+            "name": "Rig",
+            "description": "Opens the model in Blender; a Blender Artist ducky rigs it with Rigify (human or quadruped meta-rig, automatic weights), pose-tests it and animates the cycles. If that fails twice, the cloud rig (mesh.rig, backend auto) does it.",
+            "folder": "Functions",
+            "graph": {
+              "nodes": [
+                {"id": "i", "type": "flow.input", "x": 0, "y": 0, "config": {"inputs": [{"name": "mesh"}, {"name": "body"}, {"name": "height_m"}, {"name": "animations"}]}},
+                {"id": "open", "type": "blender.open", "label": "Open in Blender", "x": 300, "y": 0, "config": {"inputs": {"mesh": "{{mesh}}"}}},
+                {"id": "rep", "type": "flow.repeat", "label": "Up to 2 tries", "x": 600, "y": 0, "config": {"max": 2}},
+                {"id": "a", "type": "pipeline.agent", "label": "Rigify rig", "x": 900, "y": -240, "config": {"ducky": "blender-artist", "timeout_sec": 1800, "prompt": "The character ({{body}}, {{height_m}} m) is open in Blender. Rig it through the Blender MCP:\n1. Enable Rigify, add the {{body}} meta-rig (human for humanoid, quadruped for quadruped), fit it to the character, generate the rig.\n2. Parent the mesh with automatic weights; fix any vertex that moves with the wrong bone (check shoulders, hips, hands, jaw).\n3. Pose-test: raise an arm, bend a knee, turn the head; the skin must not tear or collapse.\n4. Animate looping cycles named exactly like this list: {{animations}} (Idle and Walk at least, 24 fps, in place, as separate Actions kept with fake users).\n5. Leave the rig and mesh in the scene, in rest pose, origin at the feet.\nFix this from the last try, if any (blank on the first): {{nodes.vis.text}}"}},
+                {"id": "exp", "type": "blender.export", "label": "Export rigged GLB", "x": 900, "y": 0, "config": {}},
+                {"id": "ren", "type": "blender.render", "label": "Render", "x": 1200, "y": 0, "config": {"inputs": {"size": 768}, "transparent": true}},
+                {"id": "vis", "type": "llm.vision", "label": "Check the skin", "x": 1500, "y": 0, "config": {"inputs": {"prompt": "This is a rigged game character. Answer yes or no first, then one line why: is the mesh intact and undistorted, no stretched, torn or collapsed skin, nothing missing?"}}},
+                {"id": "ok", "type": "logic.compare", "x": 1800, "y": 0, "config": {"op": "contains", "inputs": {"b": "yes"}}},
+                {"id": "br", "type": "flow.branch", "x": 600, "y": 400, "config": {"mode": "data", "field": "passed", "equals": "true"}},
+                {"id": "o", "type": "flow.output", "x": 900, "y": 400, "config": {"outputs": [{"name": "mesh", "value": "{{nodes.exp.mesh}}"}]}},
+                {"id": "cloud", "type": "mesh.rig", "label": "Cloud rig (fallback)", "x": 900, "y": 560, "config": {"backend": "auto", "inputs": {"mesh": "{{mesh}}", "height": "{{height_m}}", "body": "{{body}}"}}},
+                {"id": "al", "type": "logic.expression", "x": 900, "y": 440, "label": "Animation names", "config": {"names": ["animations"], "expression": "animations.join(', ')"}},
+                {"id": "anim", "type": "mesh.animate", "label": "Cloud animations (fallback)", "x": 1200, "y": 560, "config": {"backend": "auto"}},
+                {"id": "o2", "type": "flow.output", "x": 1500, "y": 560, "config": {"outputs": [{"name": "mesh"}]}}
+              ],
+              "edges": [
+                {"source": "i", "target": "open", "kind": "main"},
+                {"source": "open", "target": "rep", "kind": "main"},
+                {"source": "rep", "target": "a", "kind": "each"},
+                {"source": "rep", "target": "br", "kind": "done"},
+                {"source": "br", "target": "o", "kind": "true"},
+                {"source": "br", "target": "o2", "kind": "false"},
+                {"source": "exp", "target": "ren", "kind": "data", "source_pin": "mesh", "target_pin": "mesh"},
+                {"source": "ren", "target": "vis", "kind": "data", "source_pin": "image", "target_pin": "image"},
+                {"source": "vis", "target": "ok", "kind": "data", "source_pin": "text", "target_pin": "a"},
+                {"source": "ok", "target": "rep", "kind": "data", "source_pin": "result", "target_pin": "until"},
+                {"source": "cloud", "target": "anim", "kind": "data", "source_pin": "mesh", "target_pin": "mesh"},
+                {"source": "i", "target": "al", "kind": "data", "source_pin": "animations", "target_pin": "animations"},
+                {"source": "al", "target": "anim", "kind": "data", "source_pin": "result", "target_pin": "actions"},
+                {"source": "anim", "target": "o2", "kind": "data", "source_pin": "mesh", "target_pin": "mesh"}
+              ]
+            }
+          },
+          {
+            "key": "gear",
+            "name": "Gear",
+            "description": "Adds the spec's gear (hat, weapon, bag...) in Blender, parented to the right bones. No gear: passes the model through.",
+            "folder": "Functions",
+            "graph": {
+              "nodes": [
+                {"id": "i", "type": "flow.input", "x": 0, "y": 0, "config": {"inputs": [{"name": "mesh"}, {"name": "gear"}]}},
+                {"id": "br", "type": "flow.branch", "x": 300, "y": 0, "config": {"mode": "data", "field": "gear", "op": "exists"}},
+                {"id": "open", "type": "blender.open", "label": "Open in Blender", "x": 600, "y": -120, "config": {"inputs": {"mesh": "{{mesh}}"}}},
+                {"id": "a", "type": "pipeline.agent", "label": "Add gear", "x": 900, "y": -120, "config": {"ducky": "blender-artist", "timeout_sec": 1200, "prompt": "The rigged character is open in Blender. Model and add this gear through the Blender MCP: {{gear}}.\nEach piece: real scale for the character, under 2k triangles, material matching the character, parented to the matching bone (head, hand, spine) so it follows the animations. Do not change the rig, the weights or the Actions. Leave everything in the scene."}},
+                {"id": "exp", "type": "blender.export", "label": "Export GLB", "x": 1200, "y": -120, "config": {}},
+                {"id": "o", "type": "flow.output", "x": 1500, "y": -120, "config": {"outputs": [{"name": "mesh", "value": "{{nodes.exp.mesh}}"}]}},
+                {"id": "o2", "type": "flow.output", "x": 600, "y": 160, "config": {"outputs": [{"name": "mesh", "value": "{{mesh}}"}]}}
+              ],
+              "edges": [
+                {"source": "i", "target": "br", "kind": "main"},
+                {"source": "br", "target": "open", "kind": "true"},
+                {"source": "open", "target": "a", "kind": "main"},
+                {"source": "a", "target": "o", "kind": "main"},
+                {"source": "br", "target": "o2", "kind": "false"}
+              ]
+            }
+          },
+          {
+            "key": "ship",
+            "name": "Ship to UEFN",
+            "description": "Opens the island (asks which if the spec has none), imports the rigged model and its animations into Characters/<Name>, then builds the character blueprint, animation preset and NPC definition. meshes = one model per animation from Rig (idle first, then walk, …). Returns assets and mesh_path.",
+            "folder": "",
+            "graph": {
+              "nodes": [
+                {"id": "in", "type": "flow.input", "x": 0, "y": 0, "label": "Spec and models", "config": {"inputs": [{"name": "spec", "type": "json"}, {"name": "meshes", "type": "json"}]}},
+                {"id": "isl", "type": "logic.expression", "x": 300, "y": -200, "label": "Island", "config": {"names": ["spec"], "expression": "spec.island"}},
+                {"id": "nm", "type": "logic.expression", "x": 300, "y": 0, "label": "Name", "config": {"names": ["spec"], "expression": "spec.name"}},
+                {"id": "fold", "type": "text.template", "x": 600, "y": 0, "label": "Content folder", "config": {"names": ["name"], "template": "Characters/{{name}}"}},
+                {"id": "open", "type": "uefn.open_project", "x": 600, "y": -200, "label": "Open the island", "config": {}},
+                {"id": "imp", "type": "uefn.import", "x": 900, "y": 0, "label": "Import", "config": {"replace": true}},
+                {"id": "mp", "type": "logic.expression", "x": 1200, "y": -200, "label": "Skeletal mesh", "config": {"names": ["assets"], "expression": "assets[0]"}},
+                {"id": "idl", "type": "logic.expression", "x": 1200, "y": 0, "label": "Idle clip", "config": {"names": ["assets"], "expression": "assets[1]"}},
+                {"id": "wk", "type": "logic.expression", "x": 1200, "y": 200, "label": "Walk clip", "config": {"names": ["assets"], "expression": "assets[2] || assets[1]"}},
+                {"id": "dr", "type": "logic.expression", "x": 1500, "y": -200, "label": "Folder of the mesh", "config": {"names": ["m"], "expression": "m.split('/').slice(0, -1).join('/')"}},
+                {"id": "info", "type": "text.template", "x": 1500, "y": 0, "label": "Import report", "config": {"names": ["name", "mesh", "idle", "walk", "dir"], "template": "Imported {{name}} into {{dir}}: mesh {{mesh}}, idle {{idle}}, walk {{walk}}."}},
+                {"id": "note", "type": "notify.message", "x": 1800, "y": 0, "label": "Imported", "config": {}},
+                {"id": "bp", "type": "tool.call", "x": 2100, "y": 0, "label": "Character blueprint", "config": {"name": "create_character_blueprint", "arguments_json": "{\"name\": \"{{nodes.nm.result}}_BP\", \"skeletal_mesh_path\": \"{{nodes.mp.result}}\", \"dest_folder\": \"{{nodes.dr.result}}\"}"}},
+                {"id": "ap", "type": "tool.call", "x": 2400, "y": 0, "label": "Animation preset", "config": {"name": "create_anim_preset", "arguments_json": "{\"name\": \"{{nodes.nm.result}}_Anim\", \"idle\": \"{{nodes.idl.result}}\", \"walk\": \"{{nodes.wk.result}}\", \"dest_folder\": \"{{nodes.dr.result}}\"}"}},
+                {"id": "npc", "type": "tool.call", "x": 2700, "y": 0, "label": "NPC definition", "config": {"name": "create_npc_character_definition", "arguments_json": "{\"name\": \"{{nodes.nm.result}}_NPC\", \"skeletal_mesh_path\": \"{{nodes.mp.result}}\", \"character_blueprint_path\": \"{{nodes.dr.result}}/{{nodes.nm.result}}_BP\", \"anim_preset_path\": \"{{nodes.dr.result}}/{{nodes.nm.result}}_Anim\", \"dest_folder\": \"{{nodes.dr.result}}\", \"max_health\": 100}"}},
+                {"id": "fail", "type": "notify.message", "x": 3000, "y": 0, "label": "Tell me if it fails", "config": {"on_fail": true, "inputs": {"message": "{{nodes.nm.result}} is in UEFN as an NPC definition."}}},
+                {"id": "fin", "type": "flow.output", "x": 3300, "y": 0, "label": "Return", "config": {"outputs": [{"name": "assets", "type": "json"}, {"name": "mesh_path", "type": "text"}]}}
+              ],
+              "edges": [
+                {"source": "in", "target": "open", "kind": "main"},
+                {"source": "open", "target": "note", "kind": "main"},
+                {"source": "note", "target": "bp", "kind": "main"},
+                {"source": "bp", "target": "ap", "kind": "main"},
+                {"source": "ap", "target": "npc", "kind": "main"},
+                {"source": "npc", "target": "fail", "kind": "main"},
+                {"source": "fail", "target": "fin", "kind": "main"},
+                {"source": "in", "target": "isl", "kind": "data", "source_pin": "spec", "target_pin": "spec"},
+                {"source": "in", "target": "nm", "kind": "data", "source_pin": "spec", "target_pin": "spec"},
+                {"source": "isl", "target": "open", "kind": "data", "source_pin": "result", "target_pin": "project"},
+                {"source": "nm", "target": "fold", "kind": "data", "source_pin": "result", "target_pin": "name"},
+                {"source": "in", "target": "imp", "kind": "data", "source_pin": "meshes", "target_pin": "file"},
+                {"source": "fold", "target": "imp", "kind": "data", "source_pin": "text", "target_pin": "folder"},
+                {"source": "imp", "target": "mp", "kind": "data", "source_pin": "assets", "target_pin": "assets"},
+                {"source": "imp", "target": "idl", "kind": "data", "source_pin": "assets", "target_pin": "assets"},
+                {"source": "imp", "target": "wk", "kind": "data", "source_pin": "assets", "target_pin": "assets"},
+                {"source": "mp", "target": "dr", "kind": "data", "source_pin": "result", "target_pin": "m"},
+                {"source": "nm", "target": "info", "kind": "data", "source_pin": "result", "target_pin": "name"},
+                {"source": "mp", "target": "info", "kind": "data", "source_pin": "result", "target_pin": "mesh"},
+                {"source": "idl", "target": "info", "kind": "data", "source_pin": "result", "target_pin": "idle"},
+                {"source": "wk", "target": "info", "kind": "data", "source_pin": "result", "target_pin": "walk"},
+                {"source": "dr", "target": "info", "kind": "data", "source_pin": "result", "target_pin": "dir"},
+                {"source": "info", "target": "note", "kind": "data", "source_pin": "text", "target_pin": "message"},
+                {"source": "imp", "target": "fin", "kind": "data", "source_pin": "assets", "target_pin": "assets"},
+                {"source": "mp", "target": "fin", "kind": "data", "source_pin": "result", "target_pin": "mesh_path"}
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "blender-character-mix",
+        "label": "Blender: Character Mix",
+        "description": "One prompt makes a rigged, animated NPC: spec, concept sheet you approve, cloud 3D model (Tripo or Meshy, picked automatically), Blender cleanup (triangle budget, scale, pivot, gear), cloud rig and animations, then into the island. Needs Blender open and Tripo or Meshy enabled.",
+        "icon": "🧬",
+        "category": "Characters",
+        "kind": "bundle",
+        "root": "Blender Character Mix",
+        "folders": ["Functions"],
+        "workflows": [
+          {
+            "key": "character",
+            "name": "Character",
+            "description": "Main: prompt in, cloud-built, Blender-cleaned, cloud-rigged NPC in UEFN out.",
+            "folder": "",
+            "graph": {
+              "nodes": [
+                {"id": "s", "type": "start.chat", "x": 0, "y": 0, "config": {}},
+                {"id": "spec", "type": "workflow.call", "label": "Spec", "x": 300, "y": 0, "config": {"workflow_id": "@spec", "args": {"prompt": "{{prompt}}"}}},
+                {"id": "sheet", "type": "workflow.call", "label": "Concept sheet", "x": 600, "y": 0, "config": {"workflow_id": "@sheet", "args": {"spec": "{{spec}}", "prompts": "{{prompts}}"}}},
+                {"id": "make", "type": "workflow.call", "label": "Make 3D", "x": 900, "y": 0, "config": {"workflow_id": "@make3d", "args": {"spec": "{{spec}}", "prompts": "{{prompts}}", "views": "{{views}}"}}},
+                {"id": "clean", "type": "workflow.call", "label": "Cleanup", "x": 1200, "y": 0, "config": {"workflow_id": "@cleanup", "args": {"mesh": "{{mesh}}", "body": "{{spec.body}}", "height_m": "{{spec.height_m}}", "gear": "{{spec.gear}}"}}},
+                {"id": "rig", "type": "workflow.call", "label": "Rig", "x": 1500, "y": 0, "config": {"workflow_id": "@rig", "args": {"mesh": "{{mesh}}", "body": "{{spec.body}}", "height_m": "{{spec.height_m}}", "animations": "{{spec.animations}}"}}},
+                {"id": "ship", "type": "workflow.call", "label": "Ship to UEFN", "x": 1800, "y": 0, "config": {"workflow_id": "@ship", "args": {"spec": "{{spec}}", "meshes": "{{meshes}}"}}},
+                {"id": "f", "type": "pipeline.finish", "x": 2100, "y": 0, "config": {"message": "{{spec.name}} is in UEFN."}}
+              ],
+              "edges": [
+                {"source": "s", "target": "spec", "kind": "main"},
+                {"source": "spec", "target": "sheet", "kind": "main"},
+                {"source": "sheet", "target": "make", "kind": "main"},
+                {"source": "make", "target": "clean", "kind": "main"},
+                {"source": "clean", "target": "rig", "kind": "main"},
+                {"source": "rig", "target": "ship", "kind": "main"},
+                {"source": "ship", "target": "f", "kind": "main"}
+              ]
+            }
+          },
+          {
+            "key": "spec",
+            "name": "Spec",
+            "description": "A prompt becomes the character spec (name, body, style, palette, height, gear, animations, role, island) and the three concept-sheet prompts. Returns spec, prompts and run_title.",
+            "folder": "",
+            "graph": {
+              "nodes": [
+                {"id": "in", "type": "flow.input", "x": 0, "y": 0, "label": "Prompt", "config": {"inputs": [{"name": "prompt", "type": "text", "default": "zombie for Roguelike"}]}},
+                {"id": "ask", "type": "llm.extract", "x": 300, "y": 0, "label": "Write the spec", "config": {
+                  "names": ["name", "body", "style", "palette", "height_m", "gear", "animations", "npc_role", "island"],
+                  "system": "The text asks for a game character. Fill: name = short Title Case name (Grey Wolf); body = exactly humanoid (two legs, two arms) or quadruped (four legs); style = art style, default stylized game-ready; palette = the 3 main colors in words; height_m = realistic height in meters as a number; gear = list of up to 3 held or worn items as strings ([] for none); animations = list of animation names, idle first, walk second, then up to 3 of run, attack, bite, hurt; npc_role = one word (enemy, ally, villager, boss); island = the island or project the request names (after for or in), else null."}},
+                {"id": "fr", "type": "text.template", "x": 600, "y": 0, "label": "Front prompt", "config": {
+                  "names": ["name", "style", "body", "palette", "gear"],
+                  "template": "Character concept art of {{name}}, a {{style}} {{body}} character. Color palette: {{palette}}. Gear: {{gear}}. Full body, front view, standing in a relaxed A-pose with arms (or front legs) slightly away from the body, all limbs and feet visible, one single character centered, plain white background, flat even lighting, no cast shadow, no text."}},
+                {"id": "sd", "type": "input.text", "x": 600, "y": 160, "label": "Side prompt", "config": {"value": "The exact same character, same design, colors, gear and proportions, now in a left side view, same pose, full body, plain white background, no cast shadow, no text."}},
+                {"id": "bk", "type": "input.text", "x": 600, "y": 320, "label": "Back prompt", "config": {"value": "The exact same character, same design, colors, gear and proportions, now seen from directly behind, same pose, full body, plain white background, no cast shadow, no text."}},
+                {"id": "pl", "type": "list.make", "x": 900, "y": 0, "label": "Prompts", "config": {"names": ["front", "side", "back"]}},
+                {"id": "ret", "type": "flow.output", "x": 1200, "y": 0, "label": "Return", "config": {"outputs": [{"name": "spec", "type": "json"}, {"name": "prompts", "type": "json"}, {"name": "run_title", "type": "text"}]}}
+              ],
+              "edges": [
+                {"source": "in", "target": "ret", "kind": "main"},
+                {"source": "in", "target": "ask", "kind": "data", "source_pin": "prompt", "target_pin": "text"},
+                {"source": "ask", "target": "fr", "kind": "data", "source_pin": "name", "target_pin": "name"},
+                {"source": "ask", "target": "fr", "kind": "data", "source_pin": "style", "target_pin": "style"},
+                {"source": "ask", "target": "fr", "kind": "data", "source_pin": "body", "target_pin": "body"},
+                {"source": "ask", "target": "fr", "kind": "data", "source_pin": "palette", "target_pin": "palette"},
+                {"source": "ask", "target": "fr", "kind": "data", "source_pin": "gear", "target_pin": "gear"},
+                {"source": "fr", "target": "pl", "kind": "data", "source_pin": "text", "target_pin": "front"},
+                {"source": "sd", "target": "pl", "kind": "data", "source_pin": "text", "target_pin": "side"},
+                {"source": "bk", "target": "pl", "kind": "data", "source_pin": "text", "target_pin": "back"},
+                {"source": "ask", "target": "ret", "kind": "data", "source_pin": "data", "target_pin": "spec"},
+                {"source": "pl", "target": "ret", "kind": "data", "source_pin": "list", "target_pin": "prompts"},
+                {"source": "ask", "target": "ret", "kind": "data", "source_pin": "name", "target_pin": "run_title"}
+              ]
+            }
+          },
+          {
+            "key": "sheet",
+            "name": "Concept sheet",
+            "description": "Front, side and back views of the character (a picture and two edited views on a plain background), checked by a vision model up to 3 times, then shown for you to approve. Returns views.",
+            "folder": "",
+            "graph": {
+              "nodes": [
+                {"id": "in", "type": "flow.input", "x": 0, "y": 0, "label": "Spec and prompts", "config": {"inputs": [{"name": "spec", "type": "json"}, {"name": "prompts", "type": "json"}]}},
+                {"id": "pf", "type": "logic.expression", "x": 300, "y": -200, "label": "Front prompt", "config": {"names": ["p"], "expression": "p[0]"}},
+                {"id": "ps", "type": "logic.expression", "x": 300, "y": 0, "label": "Side prompt", "config": {"names": ["p"], "expression": "p[1]"}},
+                {"id": "pb", "type": "logic.expression", "x": 300, "y": 200, "label": "Back prompt", "config": {"names": ["p"], "expression": "p[2]"}},
+                {"id": "sn", "type": "logic.expression", "x": 300, "y": 400, "label": "Name", "config": {"names": ["spec"], "expression": "spec.name"}},
+                {"id": "gen", "type": "image.generate", "x": 600, "y": -200, "label": "Front view", "config": {"spend": true}},
+                {"id": "sd", "type": "image.edit", "x": 600, "y": 0, "label": "Side view", "config": {"spend": true}},
+                {"id": "bk", "type": "image.edit", "x": 600, "y": 200, "label": "Back view", "config": {"spend": true}},
+                {"id": "vw", "type": "list.make", "x": 1200, "y": 0, "label": "Views", "config": {"names": ["front", "side", "back"]}},
+                {"id": "vx", "type": "logic.expression", "x": 1350, "y": 0, "label": "Views as pictures", "config": {"names": ["l"], "expression": "l"}},
+                {"id": "vq", "type": "input.text", "x": 1200, "y": 200, "label": "Check question", "config": {"value": "These are the front, side and back views of one game character on a plain background. Answer PASS only if all three show the same character (same design, colors, gear), each is a full body with nothing cut off, and each is a clean single figure. Otherwise answer FAIL and say in one sentence what is wrong."}},
+                {"id": "vis", "type": "llm.vision", "x": 1500, "y": 0, "label": "Vision check", "config": {}},
+                {"id": "ok", "type": "logic.expression", "x": 1800, "y": 0, "label": "Check passed", "config": {"names": ["a"], "expression": "contains(upper(a), 'PASS') && !contains(upper(a), 'FAIL')"}},
+                {"id": "msg", "type": "text.template", "x": 1800, "y": 200, "label": "Question", "config": {"names": ["name", "verdict"], "template": "Concept sheet for {{name}} (front, side, back). Automatic check: {{verdict}}\n\nUse this goes on to 3D and rigging (these cost credits). Try again makes a new sheet. Stop ends the run."}},
+                {"id": "approve", "type": "flow.repeat", "x": 300, "y": 600, "label": "Until you approve", "config": {"max": 6}},
+                {"id": "try", "type": "flow.repeat", "x": 600, "y": 600, "label": "Make and check (3 tries)", "config": {"max": 3}},
+                {"id": "pick", "type": "flow.choose", "x": 900, "y": 600, "label": "Approve the sheet", "config": {"title": "Concept sheet", "options": "Use this, Try again, Stop"}},
+                {"id": "okc", "type": "logic.expression", "x": 1200, "y": 600, "label": "You approved", "config": {"names": ["c"], "expression": "c == 'use'"}},
+                {"id": "gate", "type": "logic.if", "x": 600, "y": 800, "label": "Approved?", "config": {"expression": "passed"}},
+                {"id": "ret", "type": "flow.output", "x": 900, "y": 800, "label": "Return", "config": {"outputs": [{"name": "views", "type": "images"}]}},
+                {"id": "miss", "type": "notify.message", "x": 900, "y": 960, "label": "Not approved", "config": {"inputs": {"message": "Concept sheet: not approved after 6 sheets, so nothing was made in 3D."}}}
+              ],
+              "edges": [
+                {"source": "in", "target": "approve", "kind": "main"},
+                {"source": "approve", "target": "try", "kind": "each"},
+                {"source": "try", "target": "pick", "kind": "done"},
+                {"source": "approve", "target": "gate", "kind": "done"},
+                {"source": "gate", "target": "ret", "kind": "true"},
+                {"source": "gate", "target": "miss", "kind": "false"},
+                {"source": "okc", "target": "approve", "kind": "data", "source_pin": "result", "target_pin": "until"},
+                {"source": "ok", "target": "try", "kind": "data", "source_pin": "result", "target_pin": "until"},
+                {"source": "in", "target": "pf", "kind": "data", "source_pin": "prompts", "target_pin": "p"},
+                {"source": "in", "target": "ps", "kind": "data", "source_pin": "prompts", "target_pin": "p"},
+                {"source": "in", "target": "pb", "kind": "data", "source_pin": "prompts", "target_pin": "p"},
+                {"source": "in", "target": "sn", "kind": "data", "source_pin": "spec", "target_pin": "spec"},
+                {"source": "pf", "target": "gen", "kind": "data", "source_pin": "result", "target_pin": "prompt"},
+                {"source": "gen", "target": "sd", "kind": "data", "source_pin": "image", "target_pin": "image"},
+                {"source": "ps", "target": "sd", "kind": "data", "source_pin": "result", "target_pin": "prompt"},
+                {"source": "gen", "target": "bk", "kind": "data", "source_pin": "image", "target_pin": "image"},
+                {"source": "pb", "target": "bk", "kind": "data", "source_pin": "result", "target_pin": "prompt"},
+                {"source": "gen", "target": "vw", "kind": "data", "source_pin": "image", "target_pin": "front"},
+                {"source": "sd", "target": "vw", "kind": "data", "source_pin": "image", "target_pin": "side"},
+                {"source": "bk", "target": "vw", "kind": "data", "source_pin": "image", "target_pin": "back"},
+                {"source": "vw", "target": "vx", "kind": "data", "source_pin": "list", "target_pin": "l"},
+                {"source": "vx", "target": "vis", "kind": "data", "source_pin": "result", "target_pin": "image"},
+                {"source": "vq", "target": "vis", "kind": "data", "source_pin": "text", "target_pin": "prompt"},
+                {"source": "vis", "target": "ok", "kind": "data", "source_pin": "text", "target_pin": "a"},
+                {"source": "sn", "target": "msg", "kind": "data", "source_pin": "result", "target_pin": "name"},
+                {"source": "vis", "target": "msg", "kind": "data", "source_pin": "text", "target_pin": "verdict"},
+                {"source": "vx", "target": "pick", "kind": "data", "source_pin": "result", "target_pin": "images"},
+                {"source": "msg", "target": "pick", "kind": "data", "source_pin": "text", "target_pin": "message"},
+                {"source": "pick", "target": "okc", "kind": "data", "source_pin": "choice", "target_pin": "c"},
+                {"source": "vx", "target": "ret", "kind": "data", "source_pin": "result", "target_pin": "views"}
+              ]
+            }
+          },
+          {
+            "key": "make3d",
+            "name": "Make 3D",
+            "description": "Cloud image-to-3D from the approved front view (backend auto: Tripo or Meshy), checked in Blender against the concept, up to 3 tries.",
+            "folder": "Functions",
+            "graph": {
+              "nodes": [
+                {"id": "i", "type": "flow.input", "x": 0, "y": 0, "config": {"inputs": [{"name": "spec", "type": "json"}, {"name": "prompts", "type": "json"}, {"name": "views", "type": "json"}]}},
+                {"id": "fr", "type": "logic.expression", "x": 300, "y": -240, "label": "Front view", "config": {"names": ["views"], "expression": "views[0]"}},
+                {"id": "cp", "type": "logic.expression", "x": 300, "y": -120, "label": "Front prompt", "config": {"names": ["prompts"], "expression": "prompts[0]"}},
+                {"id": "rep", "type": "flow.repeat", "label": "Up to 3 tries", "x": 300, "y": 0, "config": {"max": 3}},
+                {"id": "gen", "type": "mesh.from_image", "label": "Image to 3D", "x": 600, "y": 0, "config": {"backend": "auto", "fallback": true}},
+                {"id": "ren", "type": "blender.render", "label": "Front render", "x": 900, "y": 0, "config": {"inputs": {"size": 768}, "transparent": true}},
+                {"id": "ref", "type": "list.make", "x": 1200, "y": 0, "config": {"names": ["concept", "render"]}},
+                {"id": "vis", "type": "llm.vision", "label": "Compare with the concept", "x": 1200, "y": 240, "config": {"inputs": {"prompt": "Picture 1 is the concept, picture 2 is a render of the generated 3D model. Answer yes or no first, then one line why: same character, proportions, outfit and colors, nothing missing or melted?"}}},
+                {"id": "ok", "type": "logic.compare", "x": 1500, "y": 240, "config": {"op": "contains", "inputs": {"b": "yes"}}},
+                {"id": "br", "type": "flow.branch", "x": 600, "y": 400, "config": {"mode": "data", "field": "passed", "equals": "true"}},
+                {"id": "o", "type": "flow.output", "x": 900, "y": 400, "config": {"outputs": [{"name": "mesh", "value": "{{nodes.gen.mesh}}"}]}},
+                {"id": "fail", "type": "pipeline.finish", "x": 900, "y": 560, "config": {"message": "Make 3D: the cloud model didn't match the concept after 3 tries. Last note: {{nodes.vis.text}}"}}
+              ],
+              "edges": [
+                {"source": "i", "target": "rep", "kind": "main"},
+                {"source": "rep", "target": "br", "kind": "done"},
+                {"source": "br", "target": "o", "kind": "true"},
+                {"source": "br", "target": "fail", "kind": "false"},
+                {"source": "i", "target": "fr", "kind": "data", "source_pin": "views", "target_pin": "views"},
+                {"source": "i", "target": "cp", "kind": "data", "source_pin": "prompts", "target_pin": "prompts"},
+                {"source": "fr", "target": "gen", "kind": "data", "source_pin": "result", "target_pin": "image"},
+                {"source": "cp", "target": "gen", "kind": "data", "source_pin": "result", "target_pin": "prompt"},
+                {"source": "fr", "target": "ref", "kind": "data", "source_pin": "result", "target_pin": "concept"},
+                {"source": "gen", "target": "ren", "kind": "data", "source_pin": "mesh", "target_pin": "mesh"},
+                {"source": "ren", "target": "ref", "kind": "data", "source_pin": "image", "target_pin": "render"},
+                {"source": "ref", "target": "vis", "kind": "data", "source_pin": "list", "target_pin": "image"},
+                {"source": "vis", "target": "ok", "kind": "data", "source_pin": "text", "target_pin": "a"},
+                {"source": "ok", "target": "rep", "kind": "data", "source_pin": "result", "target_pin": "until"}
+              ]
+            }
+          },
+          {
+            "key": "cleanup",
+            "name": "Cleanup",
+            "description": "Opens the cloud model in Blender; a Blender Artist ducky decimates to the triangle budget, fixes scale and pivot, and attaches gear. Not rigged: the cloud rigs it next.",
+            "folder": "Functions",
+            "graph": {
+              "nodes": [
+                {"id": "i", "type": "flow.input", "x": 0, "y": 0, "config": {"inputs": [{"name": "mesh"}, {"name": "body"}, {"name": "height_m"}, {"name": "gear"}]}},
+                {"id": "open", "type": "blender.open", "label": "Open in Blender", "x": 300, "y": 0, "config": {"inputs": {"mesh": "{{mesh}}"}}},
+                {"id": "rep", "type": "flow.repeat", "label": "Up to 3 tries", "x": 600, "y": 0, "config": {"max": 3}},
+                {"id": "a", "type": "pipeline.agent", "label": "Clean up in Blender", "x": 900, "y": -240, "config": {"ducky": "blender-artist", "timeout_sec": 1800, "prompt": "The cloud-generated {{body}} character is open in Blender. Clean it for a game through the Blender MCP:\n1. Scale to {{height_m}} m tall (1 unit = 1 m), origin at the feet, facing -Y, apply all transforms.\n2. Decimate to 15k to 20k triangles keeping silhouette and UVs; remove loose parts, doubles and hidden interior faces; fix flipped normals.\n3. Keep the A-pose, arms and legs separated, so the cloud auto-rigger can find joints. Do NOT rig or add bones.\n4. Gear ({{gear}}, may be empty): keep it at real scale, then join everything into ONE mesh with one material set.\nFix this from the last try, if any (blank on the first): {{nodes.vis.text}}"}},
+                {"id": "exp", "type": "blender.export", "label": "Export GLB", "x": 600, "y": 240, "config": {}},
+                {"id": "ren", "type": "blender.render", "label": "Render", "x": 900, "y": 240, "config": {"inputs": {"size": 768}, "transparent": true}},
+                {"id": "vis", "type": "llm.vision", "label": "Check the cleanup", "x": 1200, "y": 240, "config": {"inputs": {"prompt": "Answer yes or no first, then one line why: is this a clean, intact full-body character in an A-pose, standing upright, nothing missing, no holes or spikes?"}}},
+                {"id": "ok", "type": "logic.compare", "x": 1500, "y": 240, "config": {"op": "contains", "inputs": {"b": "yes"}}},
+                {"id": "br", "type": "flow.branch", "x": 600, "y": 400, "config": {"mode": "data", "field": "passed", "equals": "true"}},
+                {"id": "o", "type": "flow.output", "x": 900, "y": 400, "config": {"outputs": [{"name": "mesh", "value": "{{nodes.exp.mesh}}"}]}},
+                {"id": "fail", "type": "pipeline.finish", "x": 900, "y": 560, "config": {"message": "Cleanup: the Blender cleanup didn't produce a clean model after 3 tries. Last note: {{nodes.vis.text}}"}}
+              ],
+              "edges": [
+                {"source": "i", "target": "open", "kind": "main"},
+                {"source": "open", "target": "rep", "kind": "main"},
+                {"source": "rep", "target": "a", "kind": "each"},
+                {"source": "rep", "target": "br", "kind": "done"},
+                {"source": "br", "target": "o", "kind": "true"},
+                {"source": "br", "target": "fail", "kind": "false"},
+                {"source": "exp", "target": "ren", "kind": "data", "source_pin": "mesh", "target_pin": "mesh"},
+                {"source": "ren", "target": "vis", "kind": "data", "source_pin": "image", "target_pin": "image"},
+                {"source": "vis", "target": "ok", "kind": "data", "source_pin": "text", "target_pin": "a"},
+                {"source": "ok", "target": "rep", "kind": "data", "source_pin": "result", "target_pin": "until"}
+              ]
+            }
+          },
+          {
+            "key": "rig",
+            "name": "Rig",
+            "description": "Cloud rig (backend auto) and cloud animations, rendered in Blender and checked, up to 2 tries.",
+            "folder": "Functions",
+            "graph": {
+              "nodes": [
+                {"id": "i", "type": "flow.input", "x": 0, "y": 0, "config": {"inputs": [{"name": "mesh"}, {"name": "body"}, {"name": "height_m"}, {"name": "animations"}]}},
+                {"id": "rep", "type": "flow.repeat", "label": "Up to 2 tries", "x": 300, "y": 0, "config": {"max": 2}},
+                {"id": "cloud", "type": "mesh.rig", "label": "Cloud rig", "x": 600, "y": 0, "config": {"backend": "auto", "inputs": {"mesh": "{{mesh}}", "height": "{{height_m}}", "body": "{{body}}"}}},
+                {"id": "al", "type": "logic.expression", "x": 600, "y": -160, "label": "Animation names", "config": {"names": ["animations"], "expression": "animations.join(', ')"}},
+                {"id": "anim", "type": "mesh.animate", "label": "Cloud animations", "x": 900, "y": 0, "config": {"backend": "auto"}},
+                {"id": "ren", "type": "blender.render", "label": "Render", "x": 1200, "y": 0, "config": {"inputs": {"size": 768}, "transparent": true}},
+                {"id": "vis", "type": "llm.vision", "label": "Check the skin", "x": 1500, "y": 0, "config": {"inputs": {"prompt": "This is a rigged game character. Answer yes or no first, then one line why: is the mesh intact and undistorted, no stretched, torn or collapsed skin, nothing missing?"}}},
+                {"id": "ok", "type": "logic.compare", "x": 1800, "y": 0, "config": {"op": "contains", "inputs": {"b": "yes"}}},
+                {"id": "br", "type": "flow.branch", "x": 600, "y": 400, "config": {"mode": "data", "field": "passed", "equals": "true"}},
+                {"id": "o", "type": "flow.output", "x": 900, "y": 400, "config": {"outputs": [{"name": "mesh", "value": "{{nodes.anim.mesh}}"}, {"name": "meshes", "value": "{{nodes.anim.meshes}}"}]}},
+                {"id": "fail", "type": "pipeline.finish", "x": 900, "y": 560, "config": {"message": "Rig: the cloud rig didn't pass the skin check after 2 tries. Last note: {{nodes.vis.text}}"}}
+              ],
+              "edges": [
+                {"source": "i", "target": "rep", "kind": "main"},
+                {"source": "rep", "target": "br", "kind": "done"},
+                {"source": "br", "target": "o", "kind": "true"},
+                {"source": "br", "target": "fail", "kind": "false"},
+                {"source": "cloud", "target": "anim", "kind": "data", "source_pin": "mesh", "target_pin": "mesh"},
+                {"source": "i", "target": "al", "kind": "data", "source_pin": "animations", "target_pin": "animations"},
+                {"source": "al", "target": "anim", "kind": "data", "source_pin": "result", "target_pin": "actions"},
+                {"source": "anim", "target": "ren", "kind": "data", "source_pin": "mesh", "target_pin": "mesh"},
+                {"source": "ren", "target": "vis", "kind": "data", "source_pin": "image", "target_pin": "image"},
+                {"source": "vis", "target": "ok", "kind": "data", "source_pin": "text", "target_pin": "a"},
+                {"source": "ok", "target": "rep", "kind": "data", "source_pin": "result", "target_pin": "until"}
+              ]
+            }
+          },
+          {
+            "key": "ship",
+            "name": "Ship to UEFN",
+            "description": "Opens the island (asks which if the spec has none), imports the rigged model and its animations into Characters/<Name>, then builds the character blueprint, animation preset and NPC definition. meshes = one model per animation from Rig (idle first, then walk, …). Returns assets and mesh_path.",
+            "folder": "",
+            "graph": {
+              "nodes": [
+                {"id": "in", "type": "flow.input", "x": 0, "y": 0, "label": "Spec and models", "config": {"inputs": [{"name": "spec", "type": "json"}, {"name": "meshes", "type": "json"}]}},
+                {"id": "isl", "type": "logic.expression", "x": 300, "y": -200, "label": "Island", "config": {"names": ["spec"], "expression": "spec.island"}},
+                {"id": "nm", "type": "logic.expression", "x": 300, "y": 0, "label": "Name", "config": {"names": ["spec"], "expression": "spec.name"}},
+                {"id": "fold", "type": "text.template", "x": 600, "y": 0, "label": "Content folder", "config": {"names": ["name"], "template": "Characters/{{name}}"}},
+                {"id": "open", "type": "uefn.open_project", "x": 600, "y": -200, "label": "Open the island", "config": {}},
+                {"id": "imp", "type": "uefn.import", "x": 900, "y": 0, "label": "Import", "config": {"replace": true}},
+                {"id": "mp", "type": "logic.expression", "x": 1200, "y": -200, "label": "Skeletal mesh", "config": {"names": ["assets"], "expression": "assets[0]"}},
+                {"id": "idl", "type": "logic.expression", "x": 1200, "y": 0, "label": "Idle clip", "config": {"names": ["assets"], "expression": "assets[1]"}},
+                {"id": "wk", "type": "logic.expression", "x": 1200, "y": 200, "label": "Walk clip", "config": {"names": ["assets"], "expression": "assets[2] || assets[1]"}},
+                {"id": "dr", "type": "logic.expression", "x": 1500, "y": -200, "label": "Folder of the mesh", "config": {"names": ["m"], "expression": "m.split('/').slice(0, -1).join('/')"}},
+                {"id": "info", "type": "text.template", "x": 1500, "y": 0, "label": "Import report", "config": {"names": ["name", "mesh", "idle", "walk", "dir"], "template": "Imported {{name}} into {{dir}}: mesh {{mesh}}, idle {{idle}}, walk {{walk}}."}},
+                {"id": "note", "type": "notify.message", "x": 1800, "y": 0, "label": "Imported", "config": {}},
+                {"id": "bp", "type": "tool.call", "x": 2100, "y": 0, "label": "Character blueprint", "config": {"name": "create_character_blueprint", "arguments_json": "{\"name\": \"{{nodes.nm.result}}_BP\", \"skeletal_mesh_path\": \"{{nodes.mp.result}}\", \"dest_folder\": \"{{nodes.dr.result}}\"}"}},
+                {"id": "ap", "type": "tool.call", "x": 2400, "y": 0, "label": "Animation preset", "config": {"name": "create_anim_preset", "arguments_json": "{\"name\": \"{{nodes.nm.result}}_Anim\", \"idle\": \"{{nodes.idl.result}}\", \"walk\": \"{{nodes.wk.result}}\", \"dest_folder\": \"{{nodes.dr.result}}\"}"}},
+                {"id": "npc", "type": "tool.call", "x": 2700, "y": 0, "label": "NPC definition", "config": {"name": "create_npc_character_definition", "arguments_json": "{\"name\": \"{{nodes.nm.result}}_NPC\", \"skeletal_mesh_path\": \"{{nodes.mp.result}}\", \"character_blueprint_path\": \"{{nodes.dr.result}}/{{nodes.nm.result}}_BP\", \"anim_preset_path\": \"{{nodes.dr.result}}/{{nodes.nm.result}}_Anim\", \"dest_folder\": \"{{nodes.dr.result}}\", \"max_health\": 100}"}},
+                {"id": "fail", "type": "notify.message", "x": 3000, "y": 0, "label": "Tell me if it fails", "config": {"on_fail": true, "inputs": {"message": "{{nodes.nm.result}} is in UEFN as an NPC definition."}}},
+                {"id": "fin", "type": "flow.output", "x": 3300, "y": 0, "label": "Return", "config": {"outputs": [{"name": "assets", "type": "json"}, {"name": "mesh_path", "type": "text"}]}}
+              ],
+              "edges": [
+                {"source": "in", "target": "open", "kind": "main"},
+                {"source": "open", "target": "note", "kind": "main"},
+                {"source": "note", "target": "bp", "kind": "main"},
+                {"source": "bp", "target": "ap", "kind": "main"},
+                {"source": "ap", "target": "npc", "kind": "main"},
+                {"source": "npc", "target": "fail", "kind": "main"},
+                {"source": "fail", "target": "fin", "kind": "main"},
+                {"source": "in", "target": "isl", "kind": "data", "source_pin": "spec", "target_pin": "spec"},
+                {"source": "in", "target": "nm", "kind": "data", "source_pin": "spec", "target_pin": "spec"},
+                {"source": "isl", "target": "open", "kind": "data", "source_pin": "result", "target_pin": "project"},
+                {"source": "nm", "target": "fold", "kind": "data", "source_pin": "result", "target_pin": "name"},
+                {"source": "in", "target": "imp", "kind": "data", "source_pin": "meshes", "target_pin": "file"},
+                {"source": "fold", "target": "imp", "kind": "data", "source_pin": "text", "target_pin": "folder"},
+                {"source": "imp", "target": "mp", "kind": "data", "source_pin": "assets", "target_pin": "assets"},
+                {"source": "imp", "target": "idl", "kind": "data", "source_pin": "assets", "target_pin": "assets"},
+                {"source": "imp", "target": "wk", "kind": "data", "source_pin": "assets", "target_pin": "assets"},
+                {"source": "mp", "target": "dr", "kind": "data", "source_pin": "result", "target_pin": "m"},
+                {"source": "nm", "target": "info", "kind": "data", "source_pin": "result", "target_pin": "name"},
+                {"source": "mp", "target": "info", "kind": "data", "source_pin": "result", "target_pin": "mesh"},
+                {"source": "idl", "target": "info", "kind": "data", "source_pin": "result", "target_pin": "idle"},
+                {"source": "wk", "target": "info", "kind": "data", "source_pin": "result", "target_pin": "walk"},
+                {"source": "dr", "target": "info", "kind": "data", "source_pin": "result", "target_pin": "dir"},
+                {"source": "info", "target": "note", "kind": "data", "source_pin": "text", "target_pin": "message"},
+                {"source": "imp", "target": "fin", "kind": "data", "source_pin": "assets", "target_pin": "assets"},
+                {"source": "mp", "target": "fin", "kind": "data", "source_pin": "result", "target_pin": "mesh_path"}
+              ]
+            }
+          }
+        ]
+      }
+    ]
     }
   },
   "backend": {
