@@ -173,6 +173,7 @@
                 {"id": "exp", "type": "blender.export", "label": "Export GLB", "x": 600, "y": 0, "config": {}},
                 {"id": "ren", "type": "blender.render", "label": "Front render", "x": 900, "y": 0, "config": {"inputs": {"size": 768}, "transparent": true}},
                 {"id": "ref", "type": "list.make", "x": 1200, "y": 0, "config": {"names": ["concept", "render"]}},
+                {"id": "rx", "type": "logic.expression", "x": 1350, "y": 0, "label": "Both as pictures", "config": {"names": ["l"], "expression": "l"}},
                 {"id": "vis", "type": "llm.vision", "label": "Compare with the concept", "x": 1200, "y": 240, "config": {"inputs": {"prompt": "Picture 1 is the concept, picture 2 is the Blender render. Answer yes or no first, then one line why: same character, same proportions, outfit and colors, no missing limbs, no floating or merged parts?"}}},
                 {"id": "ok", "type": "logic.compare", "x": 1500, "y": 240, "config": {"op": "contains", "inputs": {"b": "yes"}}},
                 {"id": "br", "type": "flow.branch", "x": 600, "y": 400, "config": {"mode": "data", "field": "passed", "equals": "true"}},
@@ -190,7 +191,8 @@
                 {"source": "fr", "target": "ref", "kind": "data", "source_pin": "result", "target_pin": "concept"},
                 {"source": "exp", "target": "ren", "kind": "data", "source_pin": "mesh", "target_pin": "mesh"},
                 {"source": "ren", "target": "ref", "kind": "data", "source_pin": "image", "target_pin": "render"},
-                {"source": "ref", "target": "vis", "kind": "data", "source_pin": "list", "target_pin": "image"},
+                {"source": "ref", "target": "rx", "kind": "data", "source_pin": "list", "target_pin": "l"},
+                {"source": "rx", "target": "vis", "kind": "data", "source_pin": "result", "target_pin": "image"},
                 {"source": "vis", "target": "ok", "kind": "data", "source_pin": "text", "target_pin": "a"},
                 {"source": "ok", "target": "rep", "kind": "data", "source_pin": "result", "target_pin": "until"}
               ]
@@ -466,6 +468,7 @@
                 {"id": "gen", "type": "mesh.from_image", "label": "Image to 3D", "x": 600, "y": 0, "config": {"backend": "auto", "fallback": true}},
                 {"id": "ren", "type": "blender.render", "label": "Front render", "x": 900, "y": 0, "config": {"inputs": {"size": 768}, "transparent": true}},
                 {"id": "ref", "type": "list.make", "x": 1200, "y": 0, "config": {"names": ["concept", "render"]}},
+                {"id": "rx", "type": "logic.expression", "x": 1350, "y": 0, "label": "Both as pictures", "config": {"names": ["l"], "expression": "l"}},
                 {"id": "vis", "type": "llm.vision", "label": "Compare with the concept", "x": 1200, "y": 240, "config": {"inputs": {"prompt": "Picture 1 is the concept, picture 2 is a render of the generated 3D model. Answer yes or no first, then one line why: same character, proportions, outfit and colors, nothing missing or melted?"}}},
                 {"id": "ok", "type": "logic.compare", "x": 1500, "y": 240, "config": {"op": "contains", "inputs": {"b": "yes"}}},
                 {"id": "br", "type": "flow.branch", "x": 600, "y": 400, "config": {"mode": "data", "field": "passed", "equals": "true"}},
@@ -484,7 +487,8 @@
                 {"source": "fr", "target": "ref", "kind": "data", "source_pin": "result", "target_pin": "concept"},
                 {"source": "gen", "target": "ren", "kind": "data", "source_pin": "mesh", "target_pin": "mesh"},
                 {"source": "ren", "target": "ref", "kind": "data", "source_pin": "image", "target_pin": "render"},
-                {"source": "ref", "target": "vis", "kind": "data", "source_pin": "list", "target_pin": "image"},
+                {"source": "ref", "target": "rx", "kind": "data", "source_pin": "list", "target_pin": "l"},
+                {"source": "rx", "target": "vis", "kind": "data", "source_pin": "result", "target_pin": "image"},
                 {"source": "vis", "target": "ok", "kind": "data", "source_pin": "text", "target_pin": "a"},
                 {"source": "ok", "target": "rep", "kind": "data", "source_pin": "result", "target_pin": "until"}
               ]

@@ -27,7 +27,7 @@ NODE_TYPES = {
     "pipeline.agent", "pipeline.finish", "tool.call", "uefn.open_project", "uefn.import", "notify.message",
     "llm.ask", "llm.extract", "llm.vision", "text.template", "input.text", "list.make",
     "logic.compare", "logic.expression", "logic.if",
-    "image.generate", "image.edit", "image.remove_bg", "image.concat",
+    "image.generate", "image.edit", "image.concat",
     "blender.open", "blender.export", "blender.render", "mesh.rig", "mesh.animate", "mesh.from_image",
 }
 EDGE_KINDS = {"main", "data", "true", "false", "each", "done"}
@@ -60,6 +60,10 @@ def test_every_node_type_exists_and_every_edge_lands():
             assert len(nodes) == len(wf["graph"]["nodes"]), wf["key"]
             assert all(n["type"] in NODE_TYPES for n in nodes.values()), (row["id"], wf["key"])
             assert all(e["source"] in nodes and e["target"] in nodes and e["kind"] in EDGE_KINDS for e in wf["graph"]["edges"]), (row["id"], wf["key"])
+
+
+def test_no_remove_background_anywhere():
+    assert "image.remove_bg" not in json.dumps([ROW, MIX])
 
 
 def test_main_calls_run_in_order():
@@ -102,7 +106,8 @@ from pathlib import Path
 
 plugin_json, row_id, tmp = sys.argv[1:4]
 from backend.automations import bundles, catalog, store
-from backend.automations.runner import _Dataflow
+from backend.automations.pins import check_wires
+from backend.automations.runner import _Dataflow, _signature
 from backend.automations.templates import bundle_of
 from backend.uefn_plugins.host import _automation_template_row
 
@@ -121,6 +126,7 @@ specs = catalog.node_specs()
 for key, wf in saved.items():
     nodes = {n["id"]: n for n in wf["graph"]["nodes"]}
     flow = _Dataflow(nodes, wf["graph"]["edges"], specs)
+    problems.extend([key, p] for p in check_wires(wf["graph"], specs, _signature))
     for e in wf["graph"]["edges"]:
         if e["kind"] != "data":
             continue
