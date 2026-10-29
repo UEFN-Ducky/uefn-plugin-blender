@@ -86,3 +86,4 @@ Combined
 | Pass Stack | `references/pass-stack.md` | When needed |
 | Grade Presets | `references/grade-presets.md` | When needed |
 | Delivery Outputs | `references/delivery-outputs.md` | When needed |
+| ORM Pack | `references/orm-pack-compositor.md` | Pack AO/rough/metal, flip normal green, compare stills |

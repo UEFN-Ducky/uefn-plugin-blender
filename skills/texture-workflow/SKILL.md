@@ -140,3 +140,6 @@ See `skill_read_subskill("blender", "polycount_budgets")` texture section.
 |-------|-----------|-----------|
 | Bake troubleshooting | `references/bake-troubleshooting.md` | Bake artifacts |
 | ORM packing | `references/orm-packing.md` | Unreal/Unity export |
+| bpy texture bake | `references/bpy-texture-bake.md` | Basic bake selection and image targets |
+| Texture set wiring | `references/texture-set-wiring.md` | Poly Haven / ambientCG / Substance folder into a material |
+| Bake maps and cage | `references/bake-maps-cage.md` | High-to-low normal, AO, curvature, ID, thickness; miss check |

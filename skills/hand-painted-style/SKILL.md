@@ -23,3 +23,10 @@ Brushwork in albedo. Geometry supports paint, not microdetail.
 3. Soft bevels for paint catch
 4. Atlas-friendly for kits
 5. Avoid photoreal photo-bashed noise
+
+## Reference Guide
+
+| Topic | Reference | Load When |
+|-------|-----------|-----------|
+| Paint workflow | `references/paint-workflow.md` | Clay → UVs → value → hue → wear order |
+| AO and curvature into albedo | `references/ao-curvature-into-albedo.md` | Painting light and form into the base colour from bakes |

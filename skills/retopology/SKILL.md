@@ -121,3 +121,5 @@ See `skill_read_subskill("blender", "polycount_budgets")`. Retopo is where budge
 |-------|-----------|-----------|
 | Facial retopo | `references/facial-retopo.md` | Character faces |
 | Game vs cinematic | `references/game-cinematic-topo.md` | Budget decisions |
+| bpy retopology | `references/bpy-retopology.md` | Shrinkwrap and QuadriFlow pipeline in bpy |
+| Methods and report | `references/retopo-methods-and-report.md` | QuadriFlow / Decimate / Planar; quads, poles, ngons report |

@@ -72,3 +72,5 @@ Each pass: change one major variable (material OR light OR camera), then screens
 |-------|-----------|----------|
 | Lookdev Rig | `references/lookdev-rig.md` | When needed |
 | Lookdev Checklist | `references/lookdev-checklist.md` | When needed |
+| bpy Lookdev Studio | `references/bpy-lookdev-studio.md` | Key/fill/rim rig and HDRI world in bpy |
+| Review Transforms | `references/review-transforms.md` | Khronos PBR Neutral vs AgX, preset per check, 3-5 pass cap |

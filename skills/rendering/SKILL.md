@@ -152,5 +152,6 @@ Run `skill_read_subskill("blender", "verify_loop")` before delivery.
 |-------|-----------|-----------|
 | Pass compositing | `references/render-passes.md` | Multi-pass output |
 | NPR/stylized render | `references/npr-rendering.md` | Stylized-style projects |
+| Quality presets | `references/render-quality-presets.md` | preview / final / product samples, bake samples |
 | Reference image match | `skill_read_subskill("blender", "reference_match")` | Photo/concept attached |
 | Visual match validation | `skill_read_subskill("blender", "verify_loop")` | Before delivery |

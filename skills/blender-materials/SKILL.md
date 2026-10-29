@@ -123,3 +123,6 @@ See stylized-style skill. Key differences:
 |-------|-----------|-----------|
 | Surface recipes | `references/surface-recipes.md` | Specific materials |
 | Procedural nodes | `references/procedural-patterns.md` | Wear, dirt, variation |
+| bpy materials | `references/bpy-materials-shading.md` | Principled setup, image textures, ORM split in bpy |
+| PBR presets and lint | `references/pbr-presets-and-lint.md` | Measured metals, gloss, painted metal; check PBR values |
+| PBR wear layers | `references/pbr-wear-layers.md` | Edge wear, dirt, scratches, wet, snow node recipes |

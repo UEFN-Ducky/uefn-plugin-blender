@@ -148,3 +148,5 @@ Second UV channel requirements:
 |-------|-----------|-----------|
 | Texel density calc | `references/texel-density.md` | Hero assets |
 | Trim sheets | `references/trim-sheets.md` | Modular kits |
+| bpy UV basics | `references/bpy-uv-workflow.md` | Smart UV, manual seams, lightmap channel in bpy |
+| Seams, texel, pack | `references/uv-seams-texel-pack.md` | bpy unwrap to a px/m target, margins, lightmap UV2, UV report |
