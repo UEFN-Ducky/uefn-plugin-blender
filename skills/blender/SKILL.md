@@ -4,7 +4,7 @@ description: "Control Blender 5.1+ via UEFN-Ducky and the official Blender Lab M
 license: MIT
 metadata:
   label: Blender
-  version: 11
+  version: 12
   author: UEFN-Ducky
   copyright: Copyright 2026 Mindful Path Company, LLC
   allow_redistribute: true
@@ -60,6 +60,53 @@ Not connected → `blender_status` (it heals). Never uv / GitHub / zip installs.
 Prefer structured tools when they exist. Never invent scene state.
 
 **Reference photo attached:** fill `skill_read_subskill("blender", "reference_analysis_template")` before mutating, then `reference_match`. Match camera before micro-detail.
+
+## Quality bar (every asset)
+
+1. **Intent first:** one line on what the player sees, from how far, and the budget class (`prop-artist` → `intent-first`, `asset-optimization` → `budgets-by-class`).
+2. **Blockout at real scale**, then detail. Read `dimensions` from `blender_get_object_info`, never by eye.
+3. **A screenshot after every mutating call** that changes the shape, then a short critique: silhouette, proportions, floating parts, shading on hard edges, default grey slots. Fix the worst one. At most 3-5 passes per stage.
+4. **Multi-angle before done:** front, side, back and ¾, plus wire and per-island colour (`qa-review` → `turntable-and-views`). Match a reference by silhouette IoU ≥ 0.85 (`qa-review` → `silhouette-iou`).
+5. **QA score before export:** `qa-review` → `bpy-qa-score` (budget, n-gons, normals, doubles, UVs, influences, pivot, names). Errors block export; then `export-pipeline` → `export-verify` re-imports the file.
+
+## Route — task → pack → subskill → first call
+
+`skill_read_subskill("<pack>", "<subskill>")`. The first call is `blender_execute_blender_code` unless named.
+
+| Task | Pack → subskill | First call |
+|---|---|---|
+| weapon, sci-fi crate, panels | `hard-surface` → `midpoly-stack`, `detail-kits` | `blender_get_object_info` (dims) |
+| buildings, kits, stairs, pipes, cables | `procedural-modeling` → `generators` | execute |
+| scatter, GN graph as JSON | `geometry-nodes` → `gn-json-graphs` | execute |
+| clutter that settles | `set-dressing` → `physics-drop`; `physics-sim` → `rigid-body-drop` | execute |
+| pivots, origin, weld parts | `scene-assembly` → `origin-and-weld` | `blender_get_scene_info` |
+| headless sculpt (inflate, smooth, detail) | `sculpting` → `sculpt-chain` | execute |
+| match a creature to a drawing | `creature-artist` → `ref-compare` | `blender_get_viewport_screenshot` |
+| retopo + topology report | `retopology` → `retopo-methods-and-report` | execute |
+| seams, texel density, pack, lightmap UV2 | `uv-workflow` → `uv-seams-texel-pack` | execute |
+| PBR presets, value lint | `blender-materials` → `pbr-presets-and-lint` | execute |
+| edge wear, dirt, wet, snow | `blender-materials` → `pbr-wear-layers` | execute |
+| wire a downloaded texture set | `texture-workflow` → `texture-set-wiring` | execute |
+| bake normal / AO / curvature / ID with a cage | `texture-workflow` → `bake-maps-cage` | `blender_get_object_info` (UVs) |
+| pack ORM | `compositing` → `orm-pack-compositor` | execute |
+| hand-painted AO + curvature in albedo | `hand-painted-style` → `ao-curvature-into-albedo` | execute |
+| studio / product light for look-dev | `lighting` → `lookdev-light-presets` | execute |
+| AgX vs PBR Neutral review | `lookdev` → `review-transforms` | execute |
+| preview / final / product render | `rendering` → `render-quality-presets` | execute |
+| rig check, weights, influences | `rigging` → `rig-check-and-weights` | `blender_get_object_info` |
+| visemes, L/R face keys | `rigging` → `visemes-and-face-split` | execute |
+| clean, loop-check game clips | `blender-animation` → `game-clip-cleanup` | execute |
+| mocap / BVH retarget | `blender-animation` → `retarget-mocap` | execute |
+| cloth fabric presets | `cloth-sim` → `fabric-physical-presets` | execute |
+| hair export budgets | `hair-groom` → `groom-export-budgets` | `blender_get_object_info` |
+| tri / material / texture budget | `asset-optimization` → `budgets-by-class` | `blender_get_scene_info` |
+| LOD chain | `lod-pipeline` → `lod-chain-recipe` | execute |
+| UCX collision hulls | `collision-proxy` → `ucx-hull-recipe`, `engine-naming` | execute |
+| QA score, views, turntable | `qa-review` → `bpy-qa-score`, `turntable-and-views` | execute |
+| 3D print check | `qa-review` → `print3d-check` | execute |
+| choose a format, verify export | `export-pipeline` → `format-matrix`, `export-verify` | save `.blend`, then execute |
+| Unreal / Unity / Godot settings | `unreal-export` → `fbx_settings`; `unity-export` → `unity-fbx-settings`; `godot-export` → `godot-gltf-settings` | save `.blend`, then execute |
+| UEFN static / rigged | `blender` → `uefn_export` / `skeletal_export` | save `.blend`, then execute |
 
 ## Scene analysis prompts (out of the box)
 
