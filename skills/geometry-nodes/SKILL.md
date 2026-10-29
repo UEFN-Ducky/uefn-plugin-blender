@@ -133,3 +133,4 @@ Document which approach per target engine.
 |-------|-----------|-----------|
 | Scatter recipes | `references/scatter-systems.md` | Environment scatter |
 | Building generators | `references/building-generators.md` | Architectural procedural |
+| JSON graphs, merged scatter, SDF-style blend | `references/gn-json-graphs.md` | Building a node graph over MCP, one-mesh scatter, smooth unions |

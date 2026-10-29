@@ -76,3 +76,5 @@ Layout locked → Hero narrative props → Secondary clusters
 |-------|-----------|----------|
 | Story Clusters | `references/story-clusters.md` | When needed |
 | Density Map | `references/density-map.md` | When needed |
+| Physics drop | `references/physics-drop.md` | Settling clutter on surfaces |
+| Seeded scatter merged to one mesh | `../geometry-nodes/references/gn-json-graphs.md` | Ground clutter for game export |

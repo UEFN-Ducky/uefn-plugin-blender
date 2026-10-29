@@ -160,6 +160,8 @@ Execute via MCP:
 |-------|-----------|-----------|
 | Boolean deep dive | `references/boolean-workflow.md` | Complex cuts |
 | Greeble library | `references/greeble-patterns.md` | Detail pass |
+| Stack presets midpoly / subd / render | `references/midpoly-stack.md` | Bevel + weighted normal pass |
+| Applied booleans + panel / vent / bolt / grille kits | `references/detail-kits.md` | Cuts and detail along a surface |
 | Pipeline | `skill_read_subskill("blender", "core")` | Phase context |
 
 ## Style Integration

@@ -112,6 +112,8 @@ Mechanical + organic:
 |-------|-----------|-----------|
 | Quadruped anatomy | `references/quadruped-anatomy.md` | Four-legged creatures |
 | Flying creatures | `references/flying-creatures.md` | Wings, flight |
+| Reference silhouette check | `references/ref-compare.md` | Matching a front/side drawing |
+| Sculpt chain, smooth unions | `../sculpting/references/sculpt-chain.md`, `../geometry-nodes/references/gn-json-graphs.md` | Body mass, merging limbs |
 | Pipeline | `skill_read_subskill("blender", "core")` | Phase context |
 
 ## Style Integration

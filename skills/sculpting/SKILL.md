@@ -133,4 +133,5 @@ Before retopo handoff provide:
 | Topic | Reference | Load When |
 |-------|-----------|-----------|
 | Brush settings | `references/brush-guide.md` | Detail pass |
+| Headless sculpt chain (remesh, inflate, symmetrize, detail) | `references/sculpt-chain.md` | Sculpting over MCP without a viewport |
 | Bake workflow | `../texture-workflow/SKILL.md` | Game asset handoff |

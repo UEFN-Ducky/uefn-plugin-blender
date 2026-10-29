@@ -92,3 +92,4 @@ Prefer non-destructive linking for repeated kits.
 |-------|-----------|----------|
 | Collection Template | `references/collection-template.md` | When needed |
 | Linking Overrides | `references/linking-overrides.md` | When needed |
+| Pivots, grounding, weld-before-check | `references/origin-and-weld.md` | Kit pivots, floating imports, non-manifold reports |

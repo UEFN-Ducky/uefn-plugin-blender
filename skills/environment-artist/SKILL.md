@@ -150,6 +150,8 @@ Use geometry nodes for scatter; see geometry-nodes skill.
 |-------|-----------|-----------|
 | Modular kit design | `references/modular-kits.md` | Kit creation |
 | Composition | `references/composition.md` | Scene layout |
+| Wall/floor kit, building, stairs generators | `../procedural-modeling/references/generators.md` | Blocking out a level fast |
+| Kit pivots and grounding | `../scene-assembly/references/origin-and-weld.md` | Snapping pieces to the grid |
 | Pipeline | `skill_read_subskill("blender", "core")` | Phase context |
 
 ## Style Integration

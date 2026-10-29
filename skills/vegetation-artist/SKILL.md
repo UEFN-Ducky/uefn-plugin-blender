@@ -77,3 +77,5 @@ Trunk/branch blockout → Branch levels → Leaf/card placement
 | Leaf Atlas | `references/leaf-atlas.md` | When needed |
 | Tree Lod | `references/tree-lod.md` | When needed |
 | Wind Vertex Colors | `references/wind-vertex-colors.md` | When needed |
+| Slope-limited seeded scatter | `../geometry-nodes/references/gn-json-graphs.md` | Grass, rocks and shrubs on terrain |
+| Organic trunk/branch merge | `../geometry-nodes/references/gn-json-graphs.md` (sdf_blend) | Blending limbs into one mesh |

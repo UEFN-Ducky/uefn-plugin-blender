@@ -131,3 +131,5 @@ Test at parameter extremes:
 |-------|-----------|-----------|
 | Geo nodes patterns | `../geometry-nodes/SKILL.md` | Node setup |
 | Environment integration | `../environment-artist/SKILL.md` | Scene placement |
+| Buildings, wall/floor kits, stairs, fences, pipes, cables | `references/generators.md` | One-call generators with exact sizes |
+| Scatter and smooth unions | `../geometry-nodes/references/gn-json-graphs.md` | Rocks on terrain, organic merges |

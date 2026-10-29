@@ -118,6 +118,8 @@ See `references/facial-topology.md` for face-specific loops.
 |-------|-----------|-----------|
 | Facial topology | `references/facial-topology.md` | Face modeling |
 | Body proportions | `references/body-proportions.md` | Blockout |
+| Reference silhouette check | `../creature-artist/references/ref-compare.md` | Matching a turnaround drawing |
+| Sculpt chain | `../sculpting/references/sculpt-chain.md` | Mass and symmetry over MCP |
 | Pipeline | `skill_read_subskill("blender", "core")` | Phase context |
 
 ## Style Integration

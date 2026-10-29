@@ -94,3 +94,4 @@ Use `lod-pipeline` for generation and validation.
 | Proportion Blockout | `references/proportion-blockout.md` | When needed |
 | Vehicle Object Split | `references/vehicle-object-split.md` | When needed |
 | Vehicle Lod Targets | `references/vehicle-lod-targets.md` | When needed |
+| Mid-poly stack, panel / vent / bolt kits | `../hard-surface/references/midpoly-stack.md`, `../hard-surface/references/detail-kits.md` | Body panels, grilles, bolts |

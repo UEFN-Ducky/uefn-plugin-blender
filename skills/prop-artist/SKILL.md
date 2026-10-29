@@ -86,3 +86,5 @@ Reference → Scale blockout → Primary volumes → Secondary forms
 | Prop Tiers | `references/prop-tiers.md` | When needed |
 | Kitbash Library | `references/kitbash-library.md` | When needed |
 | Everyday Prop Checklist | `references/everyday-prop-checklist.md` | When needed |
+| Intent first + scale table | `references/intent-first.md` | Before the first modeling call |
+| Mid-poly stack, boolean detail kits | `../hard-surface/references/midpoly-stack.md`, `../hard-surface/references/detail-kits.md` | Bevels, panels, vents, bolts |
