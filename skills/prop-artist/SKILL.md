@@ -87,4 +87,5 @@ Reference → Scale blockout → Primary volumes → Secondary forms
 | Kitbash Library | `references/kitbash-library.md` | When needed |
 | Everyday Prop Checklist | `references/everyday-prop-checklist.md` | When needed |
 | Intent first + scale table | `references/intent-first.md` | Before the first modeling call |
+| Weapons: proportions, parts + sockets, surface + wear, sci-fi | `../hard-surface/references/weapons-proportions.md`, `../hard-surface/references/weapons-modular.md`, `../hard-surface/references/weapons-surface.md`, `../hard-surface/references/weapons-scifi.md` | Guns, knives, swords, axes, hammers (grip pivot, sockets) |
 | Mid-poly stack, boolean detail kits | `../hard-surface/references/midpoly-stack.md`, `../hard-surface/references/detail-kits.md` | Bevels, panels, vents, bolts |
