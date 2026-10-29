@@ -16,3 +16,11 @@ metadata:
 # Genre: Racing / Sports
 
 Landmarks for speed. Track edge clarity. Stadium modular kits. Team color systems.
+
+## Reference Guide
+
+| Topic | Reference | Load When |
+|-------|-----------|----------|
+| Race cars: class proportions, aero kit, livery zones, swappable parts | `references/race-cars.md` | Any racing car, kart or party car |
+| Speed readability | `references/speed-readability.md` | Tracks and landmarks at speed |
+| Cars and every car part | `../vehicle-artist/SKILL.md` | Modelling the car itself |

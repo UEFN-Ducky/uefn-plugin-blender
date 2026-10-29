@@ -40,6 +40,10 @@ Ortho refs → Chassis blockout → Body volumes → Wheel/suspension
   → Interior (LOD-aware) → UVs → Materials → LODs → Collision → Export
 ```
 
+## Every part on its own
+
+Each car part is its own object with its origin at its mount point (wheel → hub, door → hinge, light → mount), real cm sizes and shared material slots, so any part fits any car of the same size class: build it alone, swap it in, keep the transform. Right-side parts: mirror and apply scale (lights, mirrors, doors) or turn 180° about Z (wheels, plates: text must read).
+
 ## Blockout Checklist
 
 - [ ] Overall length / width / height locked
@@ -91,6 +95,16 @@ Use `lod-pipeline` for generation and validation.
 
 | Topic | Reference | Load When |
 |-------|-----------|----------|
+| Car body from curves: proportions per body style, blueprints, section loft, panels with 4 mm gaps, arches | `references/car-body-from-curves.md` | Any car, truck, van, limo or kart body |
+| Tire from a size code (225/45R17), tread, sidewall text | `references/parts/tire-from-size.md` | Tires, wheels |
+| Rim and spokes (5 / 10 / mesh / dish / n), lug nuts | `references/parts/rim-spokes.md` | Rims, wheels |
+| Brake disc, caliper, suspension coilover and arms | `references/parts/brakes-suspension.md` | Brakes, suspension |
+| Headlight, taillight (reflector, lens, emissive), grille | `references/parts/lights-grille.md` | Lights, grilles |
+| Door with inner panel and hinge, hood, trunk, fender arch, window, mirror | `references/parts/panels-door-hood.md` | Body panels and openings |
+| Bumpers, spoiler (airfoil), diffuser, exhaust, license plate, wiper | `references/parts/bumpers-aero-exhaust.md` | Bolt-on exterior parts |
+| Seat, steering wheel, dashboard, engine | `references/parts/interior-engine.md` | Interior and engine bay |
+| Car paint (flakes, clearcoat 1.0 / 0.03), glass, chrome, rubber | `references/car-paint-materials.md` | Car materials |
+| Vehicle rig for UE / UEFN (FL_wheel…, doors), LODs, UCX | `references/vehicle-rig-ue.md` | Rigging, exporting a car |
 | Proportion Blockout | `references/proportion-blockout.md` | When needed |
 | Vehicle Object Split | `references/vehicle-object-split.md` | When needed |
 | Vehicle Lod Targets | `references/vehicle-lod-targets.md` | When needed |
