@@ -91,3 +91,4 @@ Simplify collision meshes → Assign rigid/soft bodies
 | Rigid Body Presets | `references/rigid-body-presets.md` | When needed |
 | Destruction Pipeline | `references/destruction-pipeline.md` | When needed |
 | Sim Bake Checklist | `references/sim-bake-checklist.md` | When needed |
+| Rigid Body Drop | `references/rigid-body-drop.md` | Settling clutter piles |

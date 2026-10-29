@@ -88,3 +88,8 @@ Use `blender_get_viewport_screenshot` via MCP when connected.
 |-------|-----------|----------|
 | Qa Verdict Template | `references/qa-verdict-template.md` | When needed |
 | Screenshot Angles | `references/screenshot-angles.md` | When needed |
+| QA Score Script | `references/bpy-qa-score.md` | Every asset before export: score, pass, fixes |
+| Turntable and Review Views | `references/turntable-and-views.md` | 8-angle stills, back views, 128 px check |
+| Silhouette IoU Gate | `references/silhouette-iou.md` | Matching a reference drawing (IoU >= 0.85) |
+| 3D Print Check | `references/print3d-check.md` | Printing: watertight, walls, overhangs, STL mm |
+| bpy Asset QA | `references/bpy-asset-qa.md` | Manual audit snippets |

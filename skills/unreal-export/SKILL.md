@@ -98,3 +98,4 @@ Smoothing: Face
 |-------|-----------|----------|
 | Unreal Checklist | `references/unreal-checklist.md` | When needed |
 | Ucx Naming | `references/ucx-naming.md` | When needed |
+| FBX Settings | `references/fbx_settings.md` | Exact FBX export and UE import options |

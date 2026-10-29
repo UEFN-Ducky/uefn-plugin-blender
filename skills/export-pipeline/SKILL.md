@@ -171,4 +171,6 @@ Compression: Draco (if supported by engine)
 | Topic | Reference | Load When |
 |-------|-----------|-----------|
 | Engine import | `references/engine-import.md` | First import test |
+| Format matrix | `references/format-matrix.md` | Axes, scale, format per target (UE5, Unity, Roblox, Godot, web, OBJ, STL, USDZ), converting |
+| Export verify | `references/export-verify.md` | After every export: re-import and compare |
 | Validation | `skill_read_subskill("qa-review")` | Pre-export gate |

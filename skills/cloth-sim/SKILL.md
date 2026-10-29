@@ -85,3 +85,4 @@ Tune mass and air viscosity for scale. Always run a settle pre-roll.
 | Cloth Settings Presets | `references/cloth-settings-presets.md` | When needed |
 | Pin And Collide | `references/pin-and-collide.md` | When needed |
 | Bake Targets | `references/bake-targets.md` | When needed |
+| Fabric Physical Presets | `references/fabric-physical-presets.md` | Cotton, denim, leather, silk, rubber values |

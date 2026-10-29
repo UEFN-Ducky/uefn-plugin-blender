@@ -85,3 +85,4 @@ Animation: include when needed
 | Topic | Reference | Load When |
 |-------|-----------|----------|
 | Godot Checklist | `references/godot-checklist.md` | When needed |
+| Godot GLB Settings | `references/godot-gltf-settings.md` | GLB options and -col / -colonly / -loop hints |

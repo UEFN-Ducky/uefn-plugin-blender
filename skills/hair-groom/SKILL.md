@@ -91,3 +91,4 @@ Scalp → Particle/curve groom → Clump/frizz/noise
 | Hair Card Atlas | `references/hair-card-atlas.md` | When needed |
 | Groom Flow Regions | `references/groom-flow-regions.md` | When needed |
 | Cinematic Vs Game | `references/cinematic-vs-game.md` | When needed |
+| Groom Export and Budgets | `references/groom-export-budgets.md` | Shipping cards, grooms or fur to an engine |

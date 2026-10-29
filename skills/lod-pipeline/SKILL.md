@@ -93,3 +93,4 @@ Collection: `COL_LODs_[Asset]`
 |-------|-----------|----------|
 | Lod Budgets | `references/lod-budgets.md` | When needed |
 | Lod Validation | `references/lod-validation.md` | When needed |
+| LOD Chain Recipe | `references/lod-chain-recipe.md` | Cleanup, ratios 1/.5/.25/.1, SM_X_LOD0 names |

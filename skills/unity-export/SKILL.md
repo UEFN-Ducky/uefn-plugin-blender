@@ -92,3 +92,4 @@ Scale Factor: 1.0 (fix if model tiny/huge)
 |-------|-----------|----------|
 | Unity Checklist | `references/unity-checklist.md` | When needed |
 | Unity Materials | `references/unity-materials.md` | When needed |
+| Unity FBX Settings | `references/unity-fbx-settings.md` | Exact FBX options, LOD names, Humanoid |

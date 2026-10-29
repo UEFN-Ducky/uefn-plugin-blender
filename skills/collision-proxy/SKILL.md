@@ -89,3 +89,4 @@ UCX_SM_Asset_02
 |-------|-----------|----------|
 | Collider Recipes | `references/collider-recipes.md` | When needed |
 | Engine Naming | `references/engine-naming.md` | When needed |
+| UCX Hull Recipe | `references/ucx-hull-recipe.md` | Convex hulls (32 verts, shrink .98) per part |

@@ -139,3 +139,4 @@ Before export:
 | Full validation | `skill_read_subskill("qa-review")` | Final gate |
 | Polycount budgets | `skill_read_subskill("blender", "polycount_budgets")` | Budget setting |
 | LOD strategies | `references/lod-strategies.md` | LOD creation |
+| Budgets by class | `references/budgets-by-class.md` | Picking tri / material / texture budgets, reduction order |

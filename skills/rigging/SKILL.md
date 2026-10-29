@@ -143,3 +143,5 @@ Minimum game facial: jaw open, blink L/R, brow up/down.
 |-------|-----------|-----------|
 | Humanoid rig | `references/humanoid-rig.md` | Characters |
 | Mechanical rig | `references/mechanical-rig.md` | Props, vehicles |
+| Rig check and weight fallbacks | `references/rig-check-and-weights.md` | Before export; bone heat fails; stress poses |
+| Visemes and face split | `references/visemes-and-face-split.md` | Lip sync, _L/_R shape keys |

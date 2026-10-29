@@ -124,3 +124,6 @@ Naming: `AN_[Char]_[Action]_[Variant]`
 |-------|-----------|-----------|
 | Walk cycle breakdown | `references/walk-cycle.md` | Locomotion |
 | Combat timing | `references/combat-animation.md` | Action games |
+| Game clip cleanup | `references/game-clip-cleanup.md` | Loop seam < 1°, no scale keys, bake and reduce |
+| Retarget mocap | `references/retarget-mocap.md` | BVH or another rig onto UE5 names |
+| bpy actions | `references/bpy-animation-actions.md` | Scripting actions and keys |
