@@ -118,6 +118,13 @@ See `references/facial-topology.md` for face-specific loops.
 |-------|-----------|-----------|
 | Facial topology | `references/facial-topology.md` | Face modeling |
 | Body proportions | `references/body-proportions.md` | Blockout |
+| Head blockout | `references/head-blockout.md` | Realistic head proportions (eye line 0.5 H, thirds) |
+| Face sculpt passes | `references/face-sculpt-passes.md` | Primary, then secondary, then tertiary detail |
+| Eyes, teeth, mouth bag | `references/eyes-teeth.md` | Cornea/iris layers, teeth arch, mouth interior |
+| Face likeness | `references/face-likeness.md` | Matching front and side photos (IoU) |
+| FACS-lite blendshapes | `references/facs-blendshapes.md` | Expressions, ARKit names |
+| Hair hand-off | `references/hair-handoff.md` | Scalp cap, groom to cards, brows and lashes |
+| Skin shader | `../realistic-style/references/skin-sss.md` | SSS, roughness T-zone, pores |
 | Reference silhouette check | `../creature-artist/references/ref-compare.md` | Matching a turnaround drawing |
 | Sculpt chain | `../sculpting/references/sculpt-chain.md` | Mass and symmetry over MCP |
 | Pipeline | `skill_read_subskill("blender", "core")` | Phase context |

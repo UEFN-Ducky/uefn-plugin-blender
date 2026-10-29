@@ -136,6 +136,8 @@ Use photographic reference for albedo; never guess saturated colors.
 |-------|-----------|-----------|
 | PBR values | `references/pbr-values.md` | Material setup |
 | Scan cleanup | `references/scan-cleanup.md` | Photogrammetry |
+| Skin shader | `references/skin-sss.md` | Realistic skin: SSS radius, roughness breakup, pores |
+| Realistic heads | `../character-archetypes/references/realistic-humans.md` | Head recipes by sex, age, build |
 
 ## Related
 - Photoreal path stays here; for era crunch use `visual-console-eras` or `lowpoly-style`.

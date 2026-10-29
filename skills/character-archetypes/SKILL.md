@@ -19,3 +19,7 @@ Use this skill to lock silhouette, materials, and proportion language for a role
 
 ## Load refs for family
 Fantasy ancestries · Horror undead/monsters · Sci-fi bodytypes · Role kits (knight, ninja, detective, etc.)
+
+| Topic | Reference | Load When |
+|-------|-----------|-----------|
+| Realistic humans | `references/realistic-humans.md` | Realistic heads by sex, age and build, with slider recipes |
