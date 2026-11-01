@@ -2,20 +2,25 @@
 
 Wire format (see assets/mcp/mcp_to_blender_server.py):
 
-    request:  {"type": "execute", "code": "...", "strict_json": bool}\\0
+    request:  {"type": "execute", "code": "...", "strict_json": bool, "token": "..."}\\0
     response: {"status": "ok"|"error", "result": {...}, "stdout": "", "stderr": ""}\\0
 
 One connection per request — the add-on closes the socket after replying.
 The executed code must assign a dict to ``result``.
+
+``token`` is the shared secret in ``TOKEN_FILE``: Ducky's startup script in Blender
+(assets/startup/uefn_ducky_blender_mcp.py) refuses requests without it.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import secrets
 import socket
 import tempfile
 import time
+from pathlib import Path
 from typing import Any
 
 DEFAULT_HOST = "localhost"
@@ -26,14 +31,38 @@ RESPONSE_TIMEOUT_S = 600.0
 _RECV = 65536
 # How often a long wait looks for Blender's crash report.
 _CRASH_POLL_S = 5.0
+# Same path as the startup script's _token_file(); keep the two in step.
+TOKEN_FILE = Path(os.environ.get("LOCALAPPDATA") or tempfile.gettempdir()) / "UEFN-Ducky" / "blender_mcp.token"
+
+
+def auth_token(path: Path | None = None) -> str:
+    """The shared Blender socket token, created on first use (whichever side runs first)."""
+    path = path or TOKEN_FILE
+    try:
+        got = path.read_text(encoding="utf-8").strip()
+        if got:
+            return got
+    except OSError:
+        pass
+    path.parent.mkdir(parents=True, exist_ok=True)
+    token = secrets.token_hex(32)
+    try:
+        with open(path, "x", encoding="utf-8") as fh:
+            fh.write(token)
+    except FileExistsError:
+        return path.read_text(encoding="utf-8").strip()
+    return token
 
 
 class BlenderError(RuntimeError):
     """The add-on ran the code and reported ``status: error``."""
 
 
-def pack_request(code: str, strict_json: bool) -> bytes:
-    return (json.dumps({"type": "execute", "code": code, "strict_json": strict_json}) + "\0").encode("utf-8")
+def pack_request(code: str, strict_json: bool, token: str = "") -> bytes:
+    req: dict[str, Any] = {"type": "execute", "code": code, "strict_json": strict_json}
+    if token:
+        req["token"] = token
+    return (json.dumps(req) + "\0").encode("utf-8")
 
 
 def unpack_response(data: bytes) -> dict[str, Any]:
@@ -65,6 +94,7 @@ def execute(
     port: int = DEFAULT_PORT,
     strict_json: bool = True,
     timeout: float = RESPONSE_TIMEOUT_S,
+    token: str | None = None,
 ) -> dict[str, Any]:
     """Run ``code`` in Blender. Returns the full envelope; raises on socket/exec error."""
     try:
@@ -76,7 +106,7 @@ def execute(
         ) from exc
     started = time.time()
     try:
-        sock.sendall(pack_request(code, strict_json))
+        sock.sendall(pack_request(code, strict_json, auth_token() if token is None else token))
         sock.settimeout(min(timeout, _CRASH_POLL_S))
         buf = bytearray()
         while b"\0" not in buf:
@@ -131,9 +161,9 @@ def _self_check() -> None:
             conn.sendall(b'{"status":"ok","result":{"ping":true},"stdout":"hi\\n"}\0')
 
     threading.Thread(target=_serve, daemon=True).start()
-    out = execute("result = {'ping': True}", host="127.0.0.1", port=port)
+    out = execute("result = {'ping': True}", host="127.0.0.1", port=port, token="t")
     assert out["result"] == {"ping": True} and out["stdout"] == "hi\n"
-    assert seen[0] == {"type": "execute", "code": "result = {'ping': True}", "strict_json": True}
+    assert seen[0] == {"type": "execute", "code": "result = {'ping': True}", "strict_json": True, "token": "t"}
     srv.close()
 
     try:

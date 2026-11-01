@@ -4,20 +4,75 @@ Copied into ``<version>/scripts/startup/`` by the blender desktop plugin.
 Idempotent. Defers via ``bpy.app.timers`` because prefs are not ready inside
 startup ``register()``.
 
-Does four things, in order:
+Does five things, in order:
 1. Allow Online Access (the official add-on refuses to start without it).
 2. Disable the old community ``blendermcp`` add-on (same port 9876).
 3. Enable ``bl_ext.user_default.mcp`` and lock host/port to localhost:9876.
-4. Start its server.
+4. Require Ducky's token on every request (the add-on itself runs code from any
+   local client); the vendored add-on stays untouched, its request parser is wrapped.
+5. Start its server.
 """
 
 from __future__ import annotations
+
+import hmac
+import json
+import os
+import secrets
+import tempfile
+from pathlib import Path
 
 _OFFICIAL = "bl_ext.user_default.mcp"
 _LEGACY = "blendermcp"
 _HOST = "localhost"
 _PORT = 9876
 _SCHEDULED = False
+
+
+def _token_file() -> Path:
+    # Same path as backend/connection.py TOKEN_FILE; keep the two in step.
+    return Path(os.environ.get("LOCALAPPDATA") or tempfile.gettempdir()) / "UEFN-Ducky" / "blender_mcp.token"
+
+
+def _token(path: Path | None = None) -> str:
+    path = path or _token_file()
+    try:
+        got = path.read_text(encoding="utf-8").strip()
+        if got:
+            return got
+    except OSError:
+        pass
+    path.parent.mkdir(parents=True, exist_ok=True)
+    token = secrets.token_hex(32)
+    try:
+        with open(path, "x", encoding="utf-8") as fh:
+            fh.write(token)
+    except FileExistsError:
+        return path.read_text(encoding="utf-8").strip()
+    return token
+
+
+def install_token_guard(srv, token_path: Path | None = None) -> None:
+    """Wrap the add-on's request parser so a request without the token never runs.
+    The token is re-read per request, so a recreated file never strands Blender."""
+    if getattr(srv, "_ducky_token_guard", False):
+        return
+    inner = srv._execute_code_from_request
+
+    def guarded(data):
+        try:
+            got = str(json.loads(data).get("token") or "")
+        except Exception:  # noqa: BLE001
+            got = ""
+        if not hmac.compare_digest(got.encode(), _token(token_path).encode()):
+            return srv._ExecResult({
+                "status": "error",
+                "message": "UEFN-Ducky: request refused (missing or wrong token)",
+            }), False
+        return inner(data)
+
+    srv._execute_code_from_request = guarded
+    srv._ducky_token_guard = True
 
 
 def _enable() -> float | None:
@@ -60,6 +115,7 @@ def _enable() -> float | None:
         try:
             from bl_ext.user_default.mcp import mcp_to_blender_server as srv  # type: ignore
 
+            install_token_guard(srv)
             if not srv.is_running():
                 bpy.ops.blmcp.server_start()
         except Exception:  # noqa: BLE001

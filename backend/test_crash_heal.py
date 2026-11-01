@@ -55,7 +55,7 @@ def test_a_crash_during_a_call_answers_in_seconds(tmp_path, monkeypatch) -> None
     threading.Thread(target=crash_soon, daemon=True).start()
     started = time.monotonic()
     try:
-        connection.execute("result = {}", host="127.0.0.1", port=port, timeout=60)
+        connection.execute("result = {}", host="127.0.0.1", port=port, timeout=60, token="t")
         raise AssertionError("expected a crash error")
     except ConnectionError as exc:
         assert "Blender crashed" in str(exc) and "save_as_mainfile" in str(exc)
