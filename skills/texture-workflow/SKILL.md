@@ -32,6 +32,13 @@ High/Low Poly Setup → Cage Setup → Bake Maps → Composite
     → Atlas Pack → Engine Format Export → Validation
 ```
 
+## Repeating Textures Use Wang Tiles (HARD)
+
+Any texture that repeats on a surface (ground, walls, brick, wood, carpet, tile) ships as a
+16-tile Wang atlas with a hashed-edge master, never as one map repeated by UV. A surface
+covered once (sign, poster, baked prop) stays a normal texture. Full atlas and material
+recipe: `skill_read_subskill("materials", "wang_tiles")`.
+
 ## Standard PBR Texture Set
 
 | Map | Format | Notes |
