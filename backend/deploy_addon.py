@@ -278,12 +278,44 @@ def _win_blender_procs() -> list[dict[str, Any]]:
     return out
 
 
+def _linux_blender_procs(proc: Path = Path("/proc")) -> list[dict[str, Any]]:
+    """Blender processes from /proc (comm ``blender``), same rows as the Windows list."""
+    import shlex
+
+    try:
+        uptime = float((proc / "uptime").read_text().split()[0])
+        tick = os.sysconf("SC_CLK_TCK") if hasattr(os, "sysconf") else 100
+        entries = list(proc.iterdir())
+    except (OSError, ValueError):
+        return []
+    out: list[dict[str, Any]] = []
+    for d in entries:
+        if not d.name.isdigit():
+            continue
+        try:
+            if (d / "comm").read_text().strip() != "blender":
+                continue
+            argv = [a.decode("utf-8", "replace") for a in (d / "cmdline").read_bytes().split(b"\0") if a]
+            # Field 22 of stat is the start time in clock ticks after boot (after the "(comm)" field).
+            start = int((d / "stat").read_text().rsplit(")", 1)[1].split()[19]) / tick
+            try:
+                exe = os.readlink(d / "exe")
+            except OSError:
+                exe = argv[0] if argv else ""
+        except (OSError, ValueError, IndexError):
+            continue
+        out.append({"pid": int(d.name), "exe": exe, "cmd": shlex.join(argv), "age": max(0.0, uptime - start)})
+    return out
+
+
 def list_blender_processes() -> list[dict[str, Any]]:
     if sys.platform == "win32":
         try:
             return _win_blender_procs()
         except Exception:
             return []
+    if sys.platform.startswith("linux"):
+        return _linux_blender_procs()
     return []
 
 
@@ -337,6 +369,10 @@ STARTING_S = 90.0
 
 def installed_blender_exe(bases: list[Path] | None = None) -> str:
     """The newest installed Blender >= MIN_BLENDER (``Blender Foundation/Blender 5.2/blender.exe``)."""
+    if bases is None and sys.platform.startswith("linux"):
+        # ponytail: PATH only (distro package, Flatpak/Snap wrapper or a symlink to a blender.org
+        # tarball); its version is checked by the add-on, which needs MIN_BLENDER to bind.
+        return shutil.which("blender") or ""
     if bases is None:
         bases = [
             Path(os.environ[key]) / "Blender Foundation"

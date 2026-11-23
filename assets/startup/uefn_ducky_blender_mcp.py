@@ -31,7 +31,9 @@ _SCHEDULED = False
 
 def _token_file() -> Path:
     # Same path as backend/connection.py TOKEN_FILE; keep the two in step.
-    return Path(os.environ.get("LOCALAPPDATA") or tempfile.gettempdir()) / "UEFN-Ducky" / "blender_mcp.token"
+    # Linux/macOS: ~/.cache, never the shared /tmp (another user could read or plant the token there).
+    base = os.environ.get("LOCALAPPDATA") or (tempfile.gettempdir() if os.name == "nt" else str(Path.home() / ".cache"))
+    return Path(base) / "UEFN-Ducky" / "blender_mcp.token"
 
 
 def _token(path: Path | None = None) -> str:
@@ -45,6 +47,11 @@ def _token(path: Path | None = None) -> str:
     path.parent.mkdir(parents=True, exist_ok=True)
     token = secrets.token_hex(32)
     try:
+        if os.name != "nt":  # owner-only: the token lets a caller run code in Blender
+            os.chmod(path.parent, 0o700)
+            with os.fdopen(os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w", encoding="utf-8") as fh:
+                fh.write(token)
+            return token
         with open(path, "x", encoding="utf-8") as fh:
             fh.write(token)
     except FileExistsError:

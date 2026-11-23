@@ -32,7 +32,10 @@ _RECV = 65536
 # How often a long wait looks for Blender's crash report.
 _CRASH_POLL_S = 5.0
 # Same path as the startup script's _token_file(); keep the two in step.
-TOKEN_FILE = Path(os.environ.get("LOCALAPPDATA") or tempfile.gettempdir()) / "UEFN-Ducky" / "blender_mcp.token"
+# Linux/macOS: ~/.cache, never the shared /tmp (another user could read or plant the token there).
+TOKEN_FILE = Path(
+    os.environ.get("LOCALAPPDATA") or (tempfile.gettempdir() if os.name == "nt" else str(Path.home() / ".cache"))
+) / "UEFN-Ducky" / "blender_mcp.token"
 
 
 def auth_token(path: Path | None = None) -> str:
@@ -47,6 +50,11 @@ def auth_token(path: Path | None = None) -> str:
     path.parent.mkdir(parents=True, exist_ok=True)
     token = secrets.token_hex(32)
     try:
+        if os.name != "nt":  # owner-only: the token lets a caller run code in Blender
+            os.chmod(path.parent, 0o700)
+            with os.fdopen(os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w", encoding="utf-8") as fh:
+                fh.write(token)
+            return token
         with open(path, "x", encoding="utf-8") as fh:
             fh.write(token)
     except FileExistsError:
