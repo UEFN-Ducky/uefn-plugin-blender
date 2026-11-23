@@ -76,7 +76,11 @@ def test_a_blender_that_ignores_the_polite_close_is_forced(monkeypatch) -> None:
     calls: list[list[str]] = []
     monkeypatch.setattr(deploy_addon.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
     monkeypatch.setattr(deploy_addon, "_pid_alive", lambda pid: True)
+    signals: list[int] = []
+    monkeypatch.setattr(deploy_addon.os, "kill", lambda pid, sig: signals.append(sig))
     deploy_addon._terminate(42, grace=0.2)
     if sys.platform == "win32":
         assert calls[0] == ["taskkill", "/PID", "42"]
         assert calls[-1] == ["taskkill", "/PID", "42", "/F", "/T"]
+    else:
+        assert signals == [15, 9]
