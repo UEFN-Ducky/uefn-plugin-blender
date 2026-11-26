@@ -316,7 +316,43 @@ def list_blender_processes() -> list[dict[str, Any]]:
             return []
     if sys.platform.startswith("linux"):
         return _linux_blender_procs()
+    if sys.platform == "darwin":
+        try:
+            return _mac_blender_procs()
+        except Exception:
+            return []
     return []
+
+
+def _etime_s(text: str) -> float:
+    """``ps`` elapsed time ``[[dd-]hh:]mm:ss`` in seconds."""
+    days, _, clock = text.strip().rpartition("-")
+    secs = 0
+    for part in clock.split(":"):
+        secs = secs * 60 + int(part)
+    return float(secs + int(days or 0) * 86400)
+
+
+def _mac_blender_procs(ps_out: str | None = None) -> list[dict[str, Any]]:
+    """macOS: Blender processes from ``ps`` (exe ``…/Blender.app/Contents/MacOS/Blender``)."""
+    import re
+    import shlex
+
+    if ps_out is None:
+        ps_out = subprocess.run(["ps", "-axww", "-o", "pid=,etime=,command="], capture_output=True,
+                                text=True, timeout=8).stdout or ""
+    out: list[dict[str, Any]] = []
+    for line in ps_out.splitlines():
+        parts = line.split(None, 2)
+        if len(parts) < 3:
+            continue
+        m = re.match(r"(.*?\.app/Contents/MacOS/Blender)(?=\s|$)", parts[2])
+        if not m:
+            continue
+        exe = m.group(1)  # the bundle path may hold spaces: quote it so the launch rules see one argv[0]
+        out.append({"pid": int(parts[0]), "exe": exe, "cmd": shlex.quote(exe) + parts[2][len(exe):],
+                    "age": _etime_s(parts[1])})
+    return out
 
 
 def _pid_alive(pid: int) -> bool:
@@ -368,7 +404,10 @@ STARTING_S = 90.0
 
 
 def installed_blender_exe(bases: list[Path] | None = None) -> str:
-    """The newest installed Blender >= MIN_BLENDER (``Blender Foundation/Blender 5.2/blender.exe``)."""
+    """The newest installed Blender >= MIN_BLENDER (``Blender Foundation/Blender 5.2/blender.exe``;
+    macOS: ``/Applications/Blender*.app``)."""
+    if sys.platform == "darwin":
+        return _mac_blender_exe(bases)
     if bases is None and sys.platform.startswith("linux"):
         # ponytail: PATH only (distro package, Flatpak/Snap wrapper or a symlink to a blender.org
         # tarball); its version is checked by the add-on, which needs MIN_BLENDER to bind.
@@ -392,6 +431,29 @@ def installed_blender_exe(bases: list[Path] | None = None) -> str:
             ver = child.name.rsplit(" ", 1)[-1]
             if exe.is_file() and _version_ok(Path(ver)):
                 major, minor = (int(x) for x in ver.split(".")[:2])
+                found.append(((major, minor), str(exe)))
+    return max(found)[1] if found else ""
+
+
+def _mac_blender_exe(bases: list[Path] | None = None) -> str:
+    """Newest ``Blender*.app`` >= MIN_BLENDER in /Applications or ~/Applications (version from Info.plist)."""
+    import plistlib
+
+    found: list[tuple[tuple[int, int], str]] = []
+    for base in bases if bases is not None else [Path("/Applications"), Path.home() / "Applications"]:
+        try:
+            apps = sorted(base.glob("Blender*.app"))
+        except OSError:
+            continue
+        for app in apps:
+            exe = app / "Contents" / "MacOS" / "Blender"
+            try:
+                with open(app / "Contents" / "Info.plist", "rb") as fh:
+                    ver = str(plistlib.load(fh).get("CFBundleShortVersionString") or "")
+                major, minor = (int(x) for x in ver.split(".")[:2])
+            except (OSError, ValueError, plistlib.InvalidFileException):
+                continue
+            if exe.is_file() and _version_ok(Path(f"{major}.{minor}")):
                 found.append(((major, minor), str(exe)))
     return max(found)[1] if found else ""
 

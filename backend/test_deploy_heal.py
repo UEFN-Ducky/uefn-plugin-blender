@@ -119,6 +119,59 @@ def test_ducky_starting_never_opens_or_restarts_blender(monkeypatch) -> None:
     assert "ensure_live(start=False)" in inspect.getsource(backend.register)
 
 
+def _mac_app(base: Path, name: str, version: str) -> Path:
+    import plistlib
+
+    exe = base / name / "Contents" / "MacOS" / "Blender"
+    exe.parent.mkdir(parents=True)
+    exe.write_bytes(b"\xcf\xfa\xed\xfe")
+    with open(base / name / "Contents" / "Info.plist", "wb") as fh:
+        plistlib.dump({"CFBundleShortVersionString": version}, fh)
+    return exe
+
+
+def test_mac_finds_the_newest_blender_app(monkeypatch, tmp_path) -> None:
+    from backend import deploy_addon as da
+
+    monkeypatch.setattr(da.sys, "platform", "darwin")
+    _mac_app(tmp_path, "Blender 4.5.app", "4.5.3")
+    newest = _mac_app(tmp_path, "Blender.app", "5.2.0")
+    _mac_app(tmp_path, "Blender 5.1.app", "5.1.1")
+    assert da.installed_blender_exe([tmp_path]) == str(newest)
+    assert da.installed_blender_exe([tmp_path / "nothing"]) == ""
+
+
+def test_mac_addons_go_to_application_support(monkeypatch, tmp_path) -> None:
+    from backend import deploy_addon as da
+
+    monkeypatch.setattr(da.sys, "platform", "darwin")
+    monkeypatch.setattr(da.Path, "home", classmethod(lambda cls: tmp_path))
+    (tmp_path / "Library" / "Application Support" / "Blender" / "5.2").mkdir(parents=True)
+    roots = da.blender_user_roots()
+    assert roots == [tmp_path / "Library" / "Application Support" / "Blender" / "5.2"]
+    out = deploy_addon(root=ROOT, roots=roots)
+    assert out["ok"] is True, out
+    assert (roots[0] / "extensions" / "user_default" / "mcp" / "blender_manifest.toml").is_file()
+
+
+def test_mac_process_list_from_ps(monkeypatch) -> None:
+    """macOS: Blender rows from ps, so an open Blender is restarted, never a second one started."""
+    from backend import deploy_addon as da
+
+    ps = ("  101 01:02:03 /Applications/Blender.app/Contents/MacOS/Blender\n"
+          "  102    00:05 /Applications/My Apps/Blender.app/Contents/MacOS/Blender /Users/me/isle.blend\n"
+          "  103 2-00:00:01 /usr/bin/python3 blender_helper.py\n")
+    rows = da._mac_blender_procs(ps)
+    assert [r["pid"] for r in rows] == [101, 102]
+    assert rows[0]["exe"] == "/Applications/Blender.app/Contents/MacOS/Blender" and rows[0]["age"] == 3723.0
+    assert rows[1]["exe"] == "/Applications/My Apps/Blender.app/Contents/MacOS/Blender"
+    assert is_plain_gui_launch(rows[0]["cmd"]) and not is_plain_gui_launch(rows[1]["cmd"])
+    assert da._etime_s("2-00:00:01") == 172801.0
+    monkeypatch.setattr(da.sys, "platform", "darwin")
+    monkeypatch.setattr(da, "_mac_blender_procs", lambda: rows)
+    assert da.list_blender_processes() == rows
+
+
 if __name__ == "__main__":
     test_host_port_are_locked()
     test_plugin_json_has_no_host_port_settings()
